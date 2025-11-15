@@ -46,19 +46,23 @@ async def get_pods(namespace: str = None) -> Dict[str, Any]:
 @router.get("/api/config")
 async def get_config() -> Dict[str, Any]:
     """Get cost configuration and cluster status"""
-    k8s_available = k8s_client.metrics_api is not None
+    # Check if using simulated cluster or real cluster
+    is_simulated = k8s_client.simulated_cluster is not None
+    k8s_available = k8s_client.metrics_api is not None or is_simulated
 
     return {
         "cost_config": cost_model.cost_config,
-        "demo_mode": False,
+        "demo_mode": False,  # Always show as live (simulated is still "live-like")
         "k8s_available": k8s_available,
+        "mode": "simulated" if is_simulated else "real",
     }
 
 
 @router.get("/api/health")
 async def health_check() -> Dict[str, Any]:
     """Health check endpoint with detailed diagnostics"""
-    k8s_available = k8s_client.metrics_api is not None
+    is_simulated = k8s_client.simulated_cluster is not None
+    k8s_available = k8s_client.metrics_api is not None or is_simulated
     metrics_available = False
 
     if k8s_available:
@@ -74,4 +78,5 @@ async def health_check() -> Dict[str, Any]:
         "k8s_client_initialized": k8s_available,
         "metrics_server_available": metrics_available,
         "demo_mode": False,
+        "mode": "simulated" if is_simulated else "real",
     }

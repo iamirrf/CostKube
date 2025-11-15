@@ -10,5 +10,7 @@ services:
         value: 3.11.8
       - key: PORT
         value: 8000
+      - key: USE_SIMULATED_CLUSTER
+        value: true
     healthCheckPath: /api/config
     autoDeploy: true

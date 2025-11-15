@@ -1,17 +1,28 @@
 from typing import Any, Dict, List, Optional
+import os
 
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
+
+from app.services.simulated_k8s import SimulatedKubernetesCluster
 
 
 class KubernetesClient:
     def __init__(self):
         self.api_client = None
         self.metrics_api = None
+        self.simulated_cluster = None
+        self.use_simulated = os.getenv("USE_SIMULATED_CLUSTER", "true").lower() == "true"
         self._init_k8s_client()
 
     def _init_k8s_client(self):
-        """Initialize Kubernetes client with in-cluster or kubeconfig"""
+        """Initialize Kubernetes client with in-cluster, kubeconfig, or simulated cluster"""
+        # Check if simulated mode is forced
+        if self.use_simulated:
+            print("🎮 USE_SIMULATED_CLUSTER enabled - using simulated live data")
+            self.simulated_cluster = SimulatedKubernetesCluster()
+            return
+        
         try:
             # Try in-cluster config first
             config.load_incluster_config()
@@ -24,7 +35,8 @@ class KubernetesClient:
                 print("✅ Using local kubeconfig")
             except config.ConfigException as e2:
                 print(f"❌ Could not load Kubernetes configuration: {e2}")
-                print("⚠️  Running in demo mode - Kubernetes cluster not available")
+                print("🎮 Falling back to simulated cluster with live-like data")
+                self.simulated_cluster = SimulatedKubernetesCluster()
                 return
 
         self.api_client = client.ApiClient()
@@ -32,7 +44,11 @@ class KubernetesClient:
         print("✅ Kubernetes client initialized successfully")
 
     def get_namespace_usage(self) -> Optional[List[Dict[str, Any]]]:
-        """Get CPU and memory usage per namespace from metrics API"""
+        """Get CPU and memory usage per namespace from metrics API or simulated cluster"""
+        # Use simulated cluster if available
+        if self.simulated_cluster:
+            return self.simulated_cluster.get_namespace_usage()
+        
         if not self.metrics_api:
             return None
 
@@ -107,7 +123,11 @@ class KubernetesClient:
             return None
 
     def get_pod_usage(self) -> Optional[List[Dict[str, Any]]]:
-        """Get CPU and memory usage per pod from metrics API"""
+        """Get CPU and memory usage per pod from metrics API or simulated cluster"""
+        # Use simulated cluster if available
+        if self.simulated_cluster:
+            return self.simulated_cluster.get_pod_usage()
+        
         if not self.metrics_api:
             return None
 
