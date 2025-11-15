@@ -2,13 +2,30 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from contextlib import asynccontextmanager
 
 from .api.routes import router as api_router
+from .services.database import db_service
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize services on startup"""
+    # Initialize database
+    await db_service.initialize()
+    print("✅ Database initialized")
+
+    yield
+
+    # Cleanup on shutdown
+    print("🔒 Shutting down CostKube")
+
 
 app = FastAPI(
     title="CostKube",
     description="Kubernetes Cost Analytics Platform for Red Hat",
-    version="1.0.0",
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 # Mount the API routes
@@ -30,4 +47,4 @@ async def read_root():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

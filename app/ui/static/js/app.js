@@ -113,6 +113,12 @@ const AppState = {
   config: {},
   isDemoMode: false,
   charts: {},
+  websocket: null,
+  searchQuery: '',
+  sortColumn: 'monthly_cost',
+  sortDirection: 'desc',
+  recommendations: null,
+  forecast: null,
 };
 
 // ==================== CHART COLORS ====================
@@ -266,6 +272,77 @@ const API = {
       console.error('Error fetching pods:', error);
       throw error;
     }
+  },
+
+  async fetchRecommendations() {
+    try {
+      const response = await fetch('/api/recommendations');
+      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      return null;
+    }
+  },
+
+  async fetchForecast(days = 30) {
+    try {
+      const response = await fetch(`/api/forecast?days=${days}`);
+      if (!response.ok) throw new Error('Failed to fetch forecast');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching forecast:', error);
+      return null;
+    }
+  },
+
+  async fetchCostTrends(hours = 168) {
+    try {
+      const response = await fetch(`/api/history/trends?hours=${hours}`);
+      if (!response.ok) throw new Error('Failed to fetch trends');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching trends:', error);
+      return null;
+    }
+  },
+
+  async exportCSV() {
+    try {
+      const response = await fetch('/api/export/namespaces/csv');
+      if (!response.ok) throw new Error('Export failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `costkube_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data');
+    }
+  },
+
+  async exportJSON() {
+    try {
+      const response = await fetch('/api/export/namespaces/json');
+      if (!response.ok) throw new Error('Export failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `costkube_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data');
+    }
   }
 };
 
@@ -347,7 +424,24 @@ const UI = {
       return;
     }
 
-    tbody.innerHTML = namespaces.map((ns, index) => `
+    // Apply search filter
+    let filteredNamespaces = namespaces;
+    if (AppState.searchQuery) {
+      const query = AppState.searchQuery.toLowerCase();
+      filteredNamespaces = namespaces.filter(ns =>
+        ns.namespace.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
+    filteredNamespaces.sort((a, b) => {
+      const aVal = a[AppState.sortColumn];
+      const bVal = b[AppState.sortColumn];
+      const multiplier = AppState.sortDirection === 'asc' ? 1 : -1;
+      return (aVal > bVal ? 1 : -1) * multiplier;
+    });
+
+    tbody.innerHTML = filteredNamespaces.map((ns, index) => `
       <tr class="namespace-row" data-namespace="${ns.namespace}" style="animation-delay: ${index * 0.05}s">
         <td>
           <span class="namespace-badge">
@@ -380,6 +474,203 @@ const UI = {
         DrawerManager.open(namespace);
       });
     });
+  }
+};
+
+// ==================== WEBSOCKET MANAGER ====================
+const WebSocketManager = {
+  ws: null,
+  reconnectAttempts: 0,
+  maxReconnectAttempts: 5,
+  reconnectDelay: 3000,
+
+  connect() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/metrics`;
+
+    try {
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.onopen = () => {
+        console.log('✅ WebSocket connected');
+        this.reconnectAttempts = 0;
+        this.startHeartbeat();
+      };
+
+      this.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'metrics_update') {
+          AppState.namespaces = data.data;
+          UI.updateKPIs(data.data);
+          UI.populateNamespaceTable(data.data);
+          ChartManager.renderAllCharts();
+        }
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      this.ws.onclose = () => {
+        console.log('WebSocket closed');
+        this.stopHeartbeat();
+        this.attemptReconnect();
+      };
+
+    } catch (error) {
+      console.error('Failed to create WebSocket:', error);
+    }
+  },
+
+  startHeartbeat() {
+    this.heartbeatInterval = setInterval(() => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send('ping');
+      }
+    }, 30000); // Ping every 30 seconds
+  },
+
+  stopHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+  },
+
+  attemptReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      console.log(`Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+      setTimeout(() => this.connect(), this.reconnectDelay);
+    }
+  },
+
+  disconnect() {
+    this.stopHeartbeat();
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+  }
+};
+
+// ==================== SEARCH & FILTER MANAGER ====================
+const SearchFilterManager = {
+  init() {
+    const searchInput = document.getElementById('namespace-search');
+    const sortSelect = document.getElementById('sort-column');
+    const sortDirBtn = document.getElementById('sort-direction');
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        AppState.searchQuery = e.target.value;
+        UI.populateNamespaceTable(AppState.namespaces);
+      });
+    }
+
+    if (sortSelect) {
+      sortSelect.addEventListener('change', (e) => {
+        AppState.sortColumn = e.target.value;
+        UI.populateNamespaceTable(AppState.namespaces);
+      });
+    }
+
+    if (sortDirBtn) {
+      sortDirBtn.addEventListener('click', () => {
+        AppState.sortDirection = AppState.sortDirection === 'asc' ? 'desc' : 'asc';
+        sortDirBtn.innerHTML = AppState.sortDirection === 'asc'
+          ? '▲ Ascending'
+          : '▼ Descending';
+        UI.populateNamespaceTable(AppState.namespaces);
+      });
+    }
+  }
+};
+
+// ==================== RECOMMENDATIONS PANEL ====================
+const RecommendationsPanel = {
+  async show() {
+    const panel = document.getElementById('recommendations-panel');
+    if (!panel) return;
+
+    panel.innerHTML = '<div class="loading-spinner"></div><p>Loading recommendations...</p>';
+    panel.style.display = 'block';
+
+    const recommendations = await API.fetchRecommendations();
+
+    if (!recommendations || recommendations.total_namespaces_analyzed === 0) {
+      panel.innerHTML = '<p>No recommendations available yet. Data is being collected...</p>';
+      return;
+    }
+
+    const html = `
+      <div class="recommendations-summary">
+        <h3>💡 Cost Optimization Recommendations</h3>
+        <div class="rec-stats">
+          <div class="rec-stat">
+            <div class="rec-stat-value">${Utils.formatCurrency(recommendations.total_potential_monthly_savings)}</div>
+            <div class="rec-stat-label">Potential Monthly Savings</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rec-stat-value">${recommendations.namespaces_with_recommendations}</div>
+            <div class="rec-stat-label">Namespaces with Issues</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rec-stat-value">${recommendations.high_priority_count}</div>
+            <div class="rec-stat-label">High Priority</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rec-stat-value">${recommendations.idle_resource_count}</div>
+            <div class="rec-stat-label">Idle Resources</div>
+          </div>
+        </div>
+      </div>
+
+      ${recommendations.idle_resources.length > 0 ? `
+        <div class="rec-section">
+          <h4>🚨 Idle Resources</h4>
+          ${recommendations.idle_resources.map(idle => `
+            <div class="rec-item severity-${idle.severity}">
+              <div class="rec-header">
+                <span class="rec-namespace">${idle.namespace}</span>
+                <span class="rec-savings">${Utils.formatCurrency(idle.potential_savings)}/mo savings</span>
+              </div>
+              <p>${idle.message}</p>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${recommendations.right_sizing_recommendations.slice(0, 5).map(rec => `
+        <div class="rec-section">
+          <h4>📊 ${rec.namespace}</h4>
+          ${rec.recommendations.map(r => `
+            <div class="rec-item severity-${r.severity}">
+              <div class="rec-header">
+                <span class="rec-type">${r.resource}</span>
+                <span class="rec-savings">${Utils.formatCurrency(r.savings)}/mo savings</span>
+              </div>
+              <p>${r.message}</p>
+              <div class="rec-details">
+                <span>Current: ${r.resource === 'CPU' ? (r.current_usage).toFixed(0) + 'm' : Utils.formatBytes(r.current_usage)}</span>
+                <span>→</span>
+                <span>Recommended: ${r.resource === 'CPU' ? r.recommended.toFixed(0) + 'm' : Utils.formatBytes(r.recommended)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    `;
+
+    panel.innerHTML = html;
+  },
+
+  hide() {
+    const panel = document.getElementById('recommendations-panel');
+    if (panel) {
+      panel.style.display = 'none';
+    }
   }
 };
 
@@ -703,62 +994,149 @@ const ChartManager = {
       AppState.charts.trend.destroy();
     }
 
-    // Generate demo trend data
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    const totalCost = AppState.namespaces.reduce((sum, ns) => sum + ns.monthly_cost, 0);
-    const trendData = months.map((_, i) => totalCost * (0.7 + (i * 0.05)));
+    // Use historical data if available, otherwise generate demo trend
+    if (AppState.trendData && AppState.trendData.timestamps.length > 0) {
+      const timestamps = AppState.trendData.timestamps.map(ts => {
+        const date = new Date(ts);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+      const costs = AppState.trendData.costs;
 
-    AppState.charts.trend = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: months,
-        datasets: [{
-          label: 'Monthly Cost Trend',
-          data: trendData,
-          borderColor: ChartColors.red,
-          backgroundColor: `${ChartColors.red}20`,
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          pointBackgroundColor: ChartColors.red,
-          pointBorderColor: ThemeManager.isDark() ? '#1A1C1C' : '#FFFFFF',
-          pointBorderWidth: 2,
-        }]
-      },
-      options: {
-        ...this.getChartDefaults(),
-        scales: {
-          x: {
-            grid: {
-              display: false,
-            },
-            ticks: {
-              color: ThemeManager.isDark() ? '#8A8D90' : '#6A6E73',
-              font: {
-                family: "'Red Hat Text', sans-serif",
-              }
-            }
-          },
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: ThemeManager.isDark() ? '#2E3236' : '#E5E5E5',
-            },
-            ticks: {
-              color: ThemeManager.isDark() ? '#8A8D90' : '#6A6E73',
-              font: {
-                family: "'Red Hat Text', sans-serif",
+      // Add forecast data if available
+      let forecastTimestamps = [];
+      let forecastCosts = [];
+
+      if (AppState.forecast && AppState.forecast.forecast_dates) {
+        forecastTimestamps = AppState.forecast.forecast_dates.slice(0, 7).map(ts => {
+          const date = new Date(ts);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        forecastCosts = AppState.forecast.forecast_costs.slice(0, 7);
+      }
+
+      AppState.charts.trend = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [...timestamps, ...forecastTimestamps],
+          datasets: [{
+            label: 'Historical Cost',
+            data: [...costs, ...Array(forecastCosts.length).fill(null)],
+            borderColor: ChartColors.red,
+            backgroundColor: `${ChartColors.red}20`,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: ChartColors.red,
+            pointBorderColor: ThemeManager.isDark() ? '#1A1C1C' : '#FFFFFF',
+            pointBorderWidth: 2,
+          }, {
+            label: 'Forecast',
+            data: [...Array(costs.length).fill(null), ...forecastCosts],
+            borderColor: ChartColors.orange,
+            backgroundColor: `${ChartColors.orange}20`,
+            borderWidth: 3,
+            borderDash: [5, 5],
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: ChartColors.orange,
+            pointBorderColor: ThemeManager.isDark() ? '#1A1C1C' : '#FFFFFF',
+            pointBorderWidth: 2,
+          }]
+        },
+        options: {
+          ...this.getChartDefaults(),
+          scales: {
+            x: {
+              grid: {
+                display: false,
               },
-              callback: function(value) {
-                return Utils.formatCurrency(value);
+              ticks: {
+                color: ThemeManager.isDark() ? '#8A8D90' : '#6A6E73',
+                font: {
+                  family: "'Red Hat Text', sans-serif",
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: ThemeManager.isDark() ? '#2E3236' : '#E5E5E5',
+              },
+              ticks: {
+                color: ThemeManager.isDark() ? '#8A8D90' : '#6A6E73',
+                font: {
+                  family: "'Red Hat Text', sans-serif",
+                },
+                callback: function(value) {
+                  return Utils.formatCurrency(value);
+                }
               }
             }
           }
         }
-      }
-    });
+      });
+    } else {
+      // Fallback to demo data
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      const totalCost = AppState.namespaces.reduce((sum, ns) => sum + ns.monthly_cost, 0);
+      const trendData = months.map((_, i) => totalCost * (0.7 + (i * 0.05)));
+
+      AppState.charts.trend = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Monthly Cost Trend',
+            data: trendData,
+            borderColor: ChartColors.red,
+            backgroundColor: `${ChartColors.red}20`,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: ChartColors.red,
+            pointBorderColor: ThemeManager.isDark() ? '#1A1C1C' : '#FFFFFF',
+            pointBorderWidth: 2,
+          }]
+        },
+        options: {
+          ...this.getChartDefaults(),
+          scales: {
+            x: {
+              grid: {
+                display: false,
+              },
+              ticks: {
+                color: ThemeManager.isDark() ? '#8A8D90' : '#6A6E73',
+                font: {
+                  family: "'Red Hat Text', sans-serif",
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: ThemeManager.isDark() ? '#2E3236' : '#E5E5E5',
+              },
+              ticks: {
+                color: ThemeManager.isDark() ? '#8A8D90' : '#6A6E73',
+                font: {
+                  family: "'Red Hat Text', sans-serif",
+                },
+                callback: function(value) {
+                  return Utils.formatCurrency(value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
   },
 
   renderAllCharts() {
@@ -773,7 +1151,7 @@ const ChartManager = {
 // ==================== APP CONTROLLER ====================
 const App = {
   async init() {
-    console.log('🚀 Initializing CostKube - Kubernetes Cost Analytics Platform');
+    console.log('🚀 Initializing CostKube - Kubernetes Cost Analytics Platform v2.0');
 
     // Show loading page for cold start detection
     LoadingPage.show();
@@ -787,12 +1165,35 @@ const App = {
     // Initialize tooltips
     TooltipManager.init();
 
+    // Initialize search & filter
+    SearchFilterManager.init();
+
     // Set up refresh button
     const refreshBtn = document.getElementById('refresh-btn');
     refreshBtn?.addEventListener('click', () => this.loadDashboard());
 
+    // Set up export buttons
+    const exportCSVBtn = document.getElementById('export-csv-btn');
+    exportCSVBtn?.addEventListener('click', () => API.exportCSV());
+
+    const exportJSONBtn = document.getElementById('export-json-btn');
+    exportJSONBtn?.addEventListener('click', () => API.exportJSON());
+
+    // Set up recommendations button
+    const recommendationsBtn = document.getElementById('show-recommendations-btn');
+    recommendationsBtn?.addEventListener('click', () => RecommendationsPanel.show());
+
     // Load dashboard data
     await this.loadDashboard();
+
+    // Initialize WebSocket for real-time updates
+    try {
+      WebSocketManager.connect();
+    } catch (error) {
+      console.warn('WebSocket not available, using polling fallback');
+      // Fallback to polling every 30 seconds
+      setInterval(() => this.loadDashboard(), 30000);
+    }
 
     // Hide loading page once ready
     setTimeout(() => LoadingPage.hide(), 500);
@@ -819,14 +1220,86 @@ const App = {
       UI.updateKPIs(AppState.namespaces);
       UI.populateNamespaceTable(AppState.namespaces);
 
-      // Render charts
-      ChartManager.renderAllCharts();
+      // Fetch historical trends (don't block on this)
+      API.fetchCostTrends().then(trends => {
+        if (trends && trends.timestamps) {
+          AppState.trendData = trends;
+        }
+        ChartManager.renderAllCharts();
+      });
+
+      // Fetch forecast (don't block on this)
+      API.fetchForecast(30).then(forecast => {
+        if (forecast && !forecast.error) {
+          AppState.forecast = forecast;
+          ChartManager.renderTrendChart(); // Re-render with forecast
+          this.displayForecastSummary(forecast);
+        }
+      });
+
+      // Fetch recommendations (don't block on this)
+      API.fetchRecommendations().then(recommendations => {
+        if (recommendations) {
+          AppState.recommendations = recommendations;
+          this.displayRecommendationsSummary(recommendations);
+        }
+      });
+
+      // Render base charts immediately
+      ChartManager.renderCostDistribution();
+      ChartManager.renderResourceChart();
 
     } catch (error) {
       console.error('❌ Error loading dashboard:', error);
       this.showError('Failed to load dashboard data. Please refresh the page.');
       LoadingPage.hide(); // Hide loading on error too
     }
+  },
+
+  displayForecastSummary(forecast) {
+    const container = document.getElementById('forecast-summary');
+    if (!container) return;
+
+    const changePercent = ((forecast.forecast_monthly_total - forecast.current_monthly_cost) / forecast.current_monthly_cost * 100).toFixed(1);
+    const trendIcon = forecast.trend === 'increasing' ? '📈' : forecast.trend === 'decreasing' ? '📉' : '➡️';
+
+    container.innerHTML = `
+      <div class="forecast-card">
+        <div class="forecast-header">
+          <h4>${trendIcon} 30-Day Cost Forecast</h4>
+        </div>
+        <div class="forecast-body">
+          <div class="forecast-value">${Utils.formatCurrency(forecast.forecast_monthly_total)}</div>
+          <div class="forecast-change ${forecast.trend}">
+            ${changePercent > 0 ? '+' : ''}${changePercent}% vs current trend
+          </div>
+          <div class="forecast-details">
+            <span>Trend: ${forecast.trend}</span>
+            <span>Confidence: High</span>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  displayRecommendationsSummary(recommendations) {
+    const container = document.getElementById('recommendations-summary');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="rec-summary-card">
+        <div class="rec-summary-icon">💡</div>
+        <div class="rec-summary-content">
+          <div class="rec-summary-value">${Utils.formatCurrency(recommendations.total_potential_monthly_savings)}</div>
+          <div class="rec-summary-label">Potential Monthly Savings</div>
+          <div class="rec-summary-actions">
+            <button class="sovereign-btn sovereign-btn-primary" onclick="RecommendationsPanel.show()">
+              View ${recommendations.namespaces_with_recommendations} Recommendations
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
   },
 
   showError(message) {

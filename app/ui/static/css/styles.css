@@ -892,7 +892,327 @@ body {
   margin-bottom: var(--space-lg);
 }
 
-/* ==================== TOOLTIP ==================== */
+/* ==================== SEARCH & FILTER ====================*/
+.search-filter-bar {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+  transition: all var(--transition-base);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--rh-red);
+  box-shadow: 0 0 0 3px rgba(238, 0, 0, 0.1);
+}
+
+.filter-select {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--rh-red);
+}
+
+/* ==================== RECOMMENDATIONS ====================*/
+#recommendations-panel {
+  display: none;
+  margin-bottom: var(--space-2xl);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+  animation: slideDown 0.4s ease-out;
+}
+
+.recommendations-summary {
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-xl);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.recommendations-summary h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-lg);
+  color: var(--text-primary);
+}
+
+.rec-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+}
+
+.rec-stat {
+  text-align: center;
+  padding: var(--space-lg);
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  transition: transform var(--transition-base);
+}
+
+.rec-stat:hover {
+  transform: translateY(-2px);
+}
+
+.rec-stat-value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--rh-red);
+  margin-bottom: var(--space-xs);
+}
+
+.rec-stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rec-section {
+  margin-bottom: var(--space-xl);
+}
+
+.rec-section h4 {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
+}
+
+.rec-item {
+  background: var(--bg-tertiary);
+  border-left: 4px solid var(--pf-blue);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  border-radius: 6px;
+  transition: all var(--transition-base);
+}
+
+.rec-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.rec-item.severity-high {
+  border-left-color: var(--rh-red);
+}
+
+.rec-item.severity-medium {
+  border-left-color: var(--pf-orange);
+}
+
+.rec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.rec-namespace, .rec-type {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rec-savings {
+  font-weight: 600;
+  color: var(--pf-green);
+}
+
+.rec-details {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  margin-top: var(--space-sm);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* ==================== FORECAST CARDS ====================*/
+.forecast-card, .rec-summary-card {
+  background: linear-gradient(135deg, var(--rh-red) 0%, var(--rh-red-dark) 100%);
+  color: white;
+  border-radius: 12px;
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.forecast-header h4 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin-bottom: var(--space-md);
+}
+
+.forecast-value {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.forecast-change {
+  font-size: 1.125rem;
+  margin-bottom: var(--space-md);
+}
+
+.forecast-change.increasing {
+  color: #FFD700;
+}
+
+.forecast-change.decreasing {
+  color: #90EE90;
+}
+
+.forecast-details {
+  display: flex;
+  gap: var(--space-lg);
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.rec-summary-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.rec-summary-icon {
+  font-size: 3rem;
+}
+
+.rec-summary-content {
+  flex: 1;
+}
+
+.rec-summary-value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.rec-summary-label {
+  font-size: 1rem;
+  margin-bottom: var(--space-md);
+  opacity: 0.9;
+}
+
+.rec-summary-actions button {
+  background: white;
+  color: var(--rh-red);
+}
+
+.rec-summary-actions button:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+/* ==================== ENHANCED ANIMATIONS ====================*/
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in-left {
+  animation: slideInFromLeft 0.5s ease-out;
+}
+
+.animate-in-right {
+  animation: slideInFromRight 0.5s ease-out;
+}
+
+.animate-in-bottom {
+  animation: slideInFromBottom 0.5s ease-out;
+}
+
+/* ==================== SKELETON LOADERS ====================*/
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-primary) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-rect {
+  height: 200px;
+  width: 100%;
+}
+
+/* ==================== TOOLTIP ====================*/
 .tooltip {
   position: fixed;
   background: var(--bg-secondary);
@@ -940,4 +1260,32 @@ body {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-bottom: 5px solid var(--bg-secondary);
+}
+
+/* ==================== MOBILE IMPROVEMENTS ====================*/
+@media (max-width: 768px) {
+  .search-filter-bar {
+    flex-direction: column;
+  }
+
+  .search-input {
+    min-width: 100%;
+  }
+
+  .rec-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .forecast-card, .rec-summary-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .rec-summary-icon {
+    font-size: 2rem;
+  }
+
+  .chart-body {
+    height: 250px;
+  }
 }
