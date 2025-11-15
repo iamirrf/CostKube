@@ -249,12 +249,12 @@ curl http://localhost:8000/api/config | jq '.mode'
 
 ## Benefits for Render.com
 
-✅ **No external dependencies** - works immediately  
-✅ **No secrets/credentials** needed  
-✅ **Instant deployment** - no cluster setup wait  
-✅ **Professional appearance** - shows "LIVE" not "DEMO"  
-✅ **Zero cost** - free tier works perfectly  
-✅ **Realistic demo** - time-varying data impresses users  
+✅ **No external dependencies** - works immediately
+✅ **No secrets/credentials** needed
+✅ **Instant deployment** - no cluster setup wait
+✅ **Professional appearance** - shows "LIVE" not "DEMO"
+✅ **Zero cost** - free tier works perfectly
+✅ **Realistic demo** - time-varying data impresses users
 
 ## Future Enhancements
 

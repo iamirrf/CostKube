@@ -22,7 +22,7 @@ class KubernetesClient:
             print("🎮 USE_SIMULATED_CLUSTER enabled - using simulated live data")
             self.simulated_cluster = SimulatedKubernetesCluster()
             return
-        
+
         try:
             # Try in-cluster config first
             config.load_incluster_config()
@@ -48,7 +48,7 @@ class KubernetesClient:
         # Use simulated cluster if available
         if self.simulated_cluster:
             return self.simulated_cluster.get_namespace_usage()
-        
+
         if not self.metrics_api:
             return None
 
@@ -127,7 +127,7 @@ class KubernetesClient:
         # Use simulated cluster if available
         if self.simulated_cluster:
             return self.simulated_cluster.get_pod_usage()
-        
+
         if not self.metrics_api:
             return None
 

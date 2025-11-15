@@ -10,11 +10,11 @@ You wanted a **one-click URL** where users can access CostKube with **real-looki
 
 I created a sophisticated **simulated Kubernetes cluster** that:
 
-✅ **Generates realistic, time-varying metrics** that fluctuate like real workloads  
-✅ **Shows as "LIVE" mode** (not "DEMO") in the UI  
-✅ **Requires ZERO setup** - works immediately on Render.com  
-✅ **Costs $0** - no cloud Kubernetes cluster needed  
-✅ **Changes every request** - metrics vary realistically over time  
+✅ **Generates realistic, time-varying metrics** that fluctuate like real workloads
+✅ **Shows as "LIVE" mode** (not "DEMO") in the UI
+✅ **Requires ZERO setup** - works immediately on Render.com
+✅ **Costs $0** - no cloud Kubernetes cluster needed
+✅ **Changes every request** - metrics vary realistically over time
 
 ## 🚀 How It Works
 
