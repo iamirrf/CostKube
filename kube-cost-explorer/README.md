@@ -174,8 +174,8 @@ The application will automatically detect if it can connect to a cluster and swi
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/iamirrf/costkube.git
-   cd costkube/kube-cost-explorer
+   git clone https://github.com/iamirrf/CostKube.git
+   cd CostKube/kube-cost-explorer
    ```
 
 2. **Create virtual environment**
@@ -213,7 +213,7 @@ The application will automatically detect if it can connect to a cluster and swi
 - ⚠️ First visit may take 30-60 seconds (free tier wakes from sleep)
 - ✅ Persistent URL - bookmark it!
 
-**Static Demo**: [https://iamirrf.github.io/costkube/](https://iamirrf.github.io/costkube/)
+**Static Demo**: [https://iamirrf.github.io/CostKube/](https://iamirrf.github.io/CostKube/)
 - ✅ Instant load, no wait time
 - ✅ Beautiful UI showcase
 - ✅ Demo mode with sample data
@@ -237,7 +237,7 @@ Want to try CostKube with a real Kubernetes cluster without any costs? Use our *
 2. **Run the auto-restart script**
 
    ```bash
-   curl -sSL https://raw.githubusercontent.com/iamirrf/costkube/main/auto_deploy_killercoda.sh | bash
+   curl -sSL https://raw.githubusercontent.com/iamirrf/CostKube/main/auto_deploy_killercoda.sh | bash
    ```
 
 3. **Access the app**
@@ -264,7 +264,7 @@ For manual control (session expires after 1 hour):
 2. **Run the deployment script**
 
    ```bash
-   curl -sSL https://raw.githubusercontent.com/iamirrf/costkube/main/deploy_killercoda.sh | bash
+   curl -sSL https://raw.githubusercontent.com/iamirrf/CostKube/main/deploy_killercoda.sh | bash
    ```
 
 3. **Start CostKube**
@@ -707,9 +707,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 🌐 **Live App**: [https://costkube.onrender.com](https://costkube.onrender.com)
-- 🎨 **UI Demo**: [https://iamirrf.github.io/costkube/](https://iamirrf.github.io/costkube/)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/iamirrf/costkube/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/iamirrf/costkube/discussions)
+- 🎨 **UI Demo**: [https://iamirrf.github.io/CostKube/](https://iamirrf.github.io/CostKube/)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/iamirrf/CostKube/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/iamirrf/CostKube/discussions)
 - 📖 **Documentation**: Full API docs available at `/docs` endpoint
 
 ---

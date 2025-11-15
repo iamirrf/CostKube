@@ -56,13 +56,12 @@ spec:
         - name: costkube
           image: python:3.11-slim
           command:
-            - /bin/bash
+            - sh
             - -c
             - |
-              apt-get update && apt-get install -y git
-              git clone https://github.com/iamirrf/costkube.git /app
-              cd /app
-              pip install -r requirements.txt
+              git clone https://github.com/iamirrf/CostKube.git /app
+              cd /app/kube-cost-explorer
+              pip install --no-cache-dir -r requirements.txt
               uvicorn app.main:app --host 0.0.0.0 --port 8000
           ports:
             - containerPort: 8000

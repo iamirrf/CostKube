@@ -85,18 +85,19 @@ echo -e "${GREEN}✅ Dependencies ready${NC}"
 echo ""
 
 # Step 5: Clone and setup KubeCost
-echo -e "${BLUE}🚀 [5/6] Setting up KubeCost application...${NC}"
-if [ -d "kubecost" ]; then
-    echo -e "${YELLOW}ℹ️  kubecost directory exists, updating...${NC}"
-    cd kubecost
+echo -e "${BLUE}🚀 [5/6] Setting up CostKube application...${NC}"
+if [ -d "CostKube" ]; then
+    echo -e "${YELLOW}ℹ️  CostKube directory exists, updating...${NC}"
+    cd CostKube
     git pull &> /dev/null || echo -e "${YELLOW}  Could not pull updates${NC}"
 else
-    git clone https://github.com/iamirrf/kubecost.git &> /dev/null
-    cd kubecost
+    git clone https://github.com/iamirrf/CostKube.git &> /dev/null
+    cd CostKube
 fi
 
+cd kube-cost-explorer
 pip3 install -r requirements.txt &> /dev/null
-echo -e "${GREEN}✅ KubeCost application ready${NC}"
+echo -e "${GREEN}✅ CostKube application ready${NC}"
 echo ""
 
 # Step 6: Verify metrics

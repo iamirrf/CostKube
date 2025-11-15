@@ -235,9 +235,9 @@ If issues arise:
 
 ## Contact & Support
 
-- **Repository**: https://github.com/iamirrf/costkube
-- **Issues**: https://github.com/iamirrf/costkube/issues
-- **Discussions**: https://github.com/iamirrf/costkube/discussions
+- **Repository**: https://github.com/iamirrf/CostKube
+- **Issues**: https://github.com/iamirrf/CostKube/issues
+- **Discussions**: https://github.com/iamirrf/CostKube/discussions
 
 ---
 

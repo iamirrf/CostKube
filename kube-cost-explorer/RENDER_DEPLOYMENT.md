@@ -269,8 +269,8 @@ Your CostKube deployment on Render.com provides:
 ## Need Help?
 
 - 📚 [Render Documentation](https://render.com/docs)
-- 💬 [GitHub Discussions](https://github.com/iamirrf/costkube/discussions)
-- 🐛 [Report Issues](https://github.com/iamirrf/costkube/issues)
+- 💬 [GitHub Discussions](https://github.com/iamirrf/CostKube/discussions)
+- 🐛 [Report Issues](https://github.com/iamirrf/CostKube/issues)
 
 ---
 

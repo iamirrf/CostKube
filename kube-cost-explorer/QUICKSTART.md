@@ -80,9 +80,11 @@ Get your own persistent deployment:
 ### Connect to Your Local Cluster
 
 ```bash
-# Clone the repo
-git clone https://github.com/iamirrf/costkube.git
-cd costkube/kube-cost-explorer
+## Installation
+
+```bash
+git clone https://github.com/iamirrf/CostKube.git
+cd CostKube/kube-cost-explorer
 
 # Install dependencies
 python -m venv venv
@@ -172,9 +174,11 @@ pip install -r requirements.txt --force-reinstall
 - **Render.com Deployment:** See `RENDER_DEPLOYMENT.md`
 - **Setup Guide:** See `KUBERNETES_SETUP.md`
 - **API Docs:** Visit `http://localhost:8000/docs` (when app is running)
-- **GitHub Repo:** https://github.com/iamirrf/costkube
+## 🔗 Links
+
+- **GitHub Repo:** https://github.com/iamirrf/CostKube
 - **Live Application:** https://costkube.onrender.com
-- **Static Demo:** https://iamirrf.github.io/costkube/
+- **Static Demo:** https://iamirrf.github.io/CostKube/
 
 ---
 
