@@ -1,0 +1,85 @@
+{
+  "namespaces": [
+    {
+      "namespace": "default",
+      "cpu_mcores": 250,
+      "memory_bytes": 536870912
+    },
+    {
+      "namespace": "kube-system",
+      "cpu_mcores": 180,
+      "memory_bytes": 3221225472
+    },
+    {
+      "namespace": "monitoring",
+      "cpu_mcores": 420,
+      "memory_bytes": 2147483648
+    },
+    {
+      "namespace": "ingress-nginx",
+      "cpu_mcores": 150,
+      "memory_bytes": 1073741824
+    },
+    {
+      "namespace": "development",
+      "cpu_mcores": 650,
+      "memory_bytes": 4294967296
+    }
+  ],
+  "pods": [
+    {
+      "namespace": "default",
+      "pod": "my-app-7d5c6c7c9c-8zqj2",
+      "cpu_mcores": 100,
+      "memory_bytes": 268435456
+    },
+    {
+      "namespace": "default",
+      "pod": "my-app-7d5c6c7c9c-9x2v3",
+      "cpu_mcores": 150,
+      "memory_bytes": 268435456
+    },
+    {
+      "namespace": "kube-system",
+      "pod": "kube-apiserver-minikube",
+      "cpu_mcores": 100,
+      "memory_bytes": 1073741824
+    },
+    {
+      "namespace": "kube-system",
+      "pod": "etcd-minikube",
+      "cpu_mcores": 80,
+      "memory_bytes": 2147483648
+    },
+    {
+      "namespace": "monitoring",
+      "pod": "prometheus-7d5c6c7c9c-8zqj2",
+      "cpu_mcores": 300,
+      "memory_bytes": 1073741824
+    },
+    {
+      "namespace": "monitoring",
+      "pod": "grafana-7d5c6c7c9c-9x2v3",
+      "cpu_mcores": 120,
+      "memory_bytes": 1073741824
+    },
+    {
+      "namespace": "ingress-nginx",
+      "pod": "nginx-ingress-controller-7d5c6c7c9c-8zqj2",
+      "cpu_mcores": 150,
+      "memory_bytes": 1073741824
+    },
+    {
+      "namespace": "development",
+      "pod": "dev-app-7d5c6c7c9c-8zqj2",
+      "cpu_mcores": 400,
+      "memory_bytes": 2147483648
+    },
+    {
+      "namespace": "development",
+      "pod": "dev-db-7d5c6c7c9c-9x2v3",
+      "cpu_mcores": 250,
+      "memory_bytes": 2147483648
+    }
+  ]
+}

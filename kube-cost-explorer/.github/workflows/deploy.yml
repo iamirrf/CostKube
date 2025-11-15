@@ -1,0 +1,90 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Create static demo site
+      run: |
+        mkdir -p _site
+        cp -r app/ui/static/* _site/
+        cp app/ui/templates/index.html _site/
+
+        # Create a simple static API mock
+        mkdir -p _site/api
+        cat > _site/api/config.json << 'EOF'
+        {
+          "currency": "USD",
+          "cpu_per_core_hour": 0.031,
+          "mem_per_gb_hour": 0.004,
+          "demo_mode": true
+        }
+        EOF
+
+        cat > _site/api/namespaces.json << 'EOF'
+        {
+          "data": [
+            {
+              "namespace": "production",
+              "cpu_mcores": 4500,
+              "memory_bytes": 8589934592,
+              "hourly_cost": 0.165,
+              "monthly_cost": 118.80
+            },
+            {
+              "namespace": "staging",
+              "cpu_mcores": 2000,
+              "memory_bytes": 4294967296,
+              "hourly_cost": 0.079,
+              "monthly_cost": 56.88
+            },
+            {
+              "namespace": "development",
+              "cpu_mcores": 1000,
+              "memory_bytes": 2147483648,
+              "hourly_cost": 0.040,
+              "monthly_cost": 28.80
+            }
+          ],
+          "demo_mode": true
+        }
+        EOF
+
+        # Update API URLs in JavaScript for static hosting
+        sed -i 's|/api/|./api/|g' _site/js/app.js || sed -i '' 's|/api/|./api/|g' _site/js/app.js
+        sed -i 's|/static/|./|g' _site/index.html || sed -i '' 's|/static/|./|g' _site/index.html
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

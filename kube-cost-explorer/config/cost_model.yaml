@@ -1,0 +1,3 @@
+currency: USD
+cpu_per_core_hour: 0.031  # 1 vCPU hour price
+mem_per_gb_hour: 0.004    # 1 GiB RAM hour price

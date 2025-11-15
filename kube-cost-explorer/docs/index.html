@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CostKube | Red Hat</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Red_Hat_logo.svg/631px-Red_Hat_logo.svg.png">
+
+    <!-- PatternFly 5 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@5.3.1/patternfly.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@5.3.1/patternfly-addons.css">
+
+    <!-- Red Hat Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700;900&family=Red+Hat+Text:wght@300;400;500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom Sovereign CSS -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="pf-v5-theme-dark sovereign-body">
+
+    <!-- Red Hat Header Bar -->
+    <header class="sovereign-header">
+        <div class="sovereign-header-content">
+            <div class="sovereign-header-left">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Red_Hat_logo.svg/631px-Red_Hat_logo.svg.png"
+                     alt="Red Hat"
+                     class="sovereign-logo">
+                <h1 class="sovereign-title">CostKube</h1>
+                <span class="sovereign-subtitle">Kubernetes Cost Analytics</span>
+            </div>
+            <div class="sovereign-header-right">
+                <div id="connection-status" class="sovereign-status">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">LIVE</span>
+                </div>
+                <button id="theme-toggle" class="sovereign-theme-toggle" aria-label="Toggle theme">
+                    <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Demo Mode Alert -->
+    <div id="demo-alert" class="sovereign-demo-alert" style="display: none;">
+        <div class="demo-alert-content">
+            <svg class="demo-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Demo Mode Active — Connected cluster not detected. Displaying sample data.</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="sovereign-main">
+
+        <!-- KPI Summary Belt -->
+        <section class="kpi-belt">
+            <div class="kpi-card" data-metric="cost">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Monthly Cost</span>
+                    <button class="info-btn" data-tooltip="Estimated total monthly cost based on current CPU and memory usage across all namespaces">
+                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="kpi-value" id="total-cost">$0.00</div>
+                <div class="kpi-trend">
+                    <span class="trend-indicator">—</span>
+                    <span class="trend-text">per month</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" data-metric="namespace">
+                <div class="kpi-header">
+                    <span class="kpi-label">Most Expensive</span>
+                    <button class="info-btn" data-tooltip="The namespace with the highest monthly cost based on resource consumption">
+                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="kpi-value kpi-value-sm" id="expensive-namespace">N/A</div>
+                <div class="kpi-trend">
+                    <span class="trend-text">namespace</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" data-metric="count">
+                <div class="kpi-header">
+                    <span class="kpi-label">Active Namespaces</span>
+                    <button class="info-btn" data-tooltip="Total number of namespaces currently monitored in your Kubernetes cluster">
+                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="kpi-value" id="namespace-count">0</div>
+                <div class="kpi-trend">
+                    <span class="trend-text">monitored</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" data-metric="cpu">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total CPU</span>
+                    <button class="info-btn" data-tooltip="Total CPU cores currently allocated across all pods in your cluster">
+                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="kpi-value" id="total-cpu">0</div>
+                <div class="kpi-trend">
+                    <span class="trend-text">cores allocated</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" data-metric="memory">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Memory</span>
+                    <button class="info-btn" data-tooltip="Total memory (RAM) currently allocated across all pods in your cluster">
+                        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="kpi-value" id="total-memory">0 GB</div>
+                <div class="kpi-trend">
+                    <span class="trend-text">allocated</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cost Explorer Table -->
+        <section class="sovereign-section">
+            <div class="section-header">
+                <div class="section-header-content">
+                    <h2 class="section-title">Namespace Cost Analysis</h2>
+                    <p class="section-description">Detailed breakdown of costs by namespace, including CPU and memory allocation</p>
+                </div>
+                <div class="section-actions">
+                    <button class="sovereign-btn sovereign-btn-secondary" id="refresh-btn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="sovereign-table-container">
+                <table class="sovereign-table">
+                    <thead>
+                        <tr>
+                            <th>Namespace</th>
+                            <th>CPU (cores)</th>
+                            <th>Memory (GiB)</th>
+                            <th>Hourly Cost</th>
+                            <th>Monthly Cost</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="namespace-table-body">
+                        <tr class="table-loading">
+                            <td colspan="6">
+                                <div class="loading-spinner"></div>
+                                <span>Loading namespace data...</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-header-content">
+                        <h3 class="chart-title">Cost Distribution by Namespace</h3>
+                        <p class="chart-description">Top 8 namespaces by monthly cost</p>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="cost-distribution-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-header-content">
+                        <h3 class="chart-title">Resource Allocation</h3>
+                        <p class="chart-description">CPU cores and memory (GB) by namespace</p>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="resource-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card chart-card-wide">
+                <div class="chart-header">
+                    <div class="chart-header-content">
+                        <h3 class="chart-title">Cost Trend Analysis</h3>
+                        <p class="chart-description">6-month cost projection based on current usage</p>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Pod Detail Drawer (Sovereign Style) -->
+    <div id="pod-drawer" class="sovereign-drawer">
+        <div class="drawer-backdrop"></div>
+        <div class="drawer-panel">
+            <div class="drawer-header">
+                <h2 class="drawer-title" id="drawer-namespace">Pod Details</h2>
+                <button class="drawer-close" id="close-drawer" aria-label="Close drawer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="drawer-body" id="pod-drawer-content">
+                <!-- Pod content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="sovereign-footer">
+        <p><strong>CostKube</strong> — Powered by Red Hat Open Source Technologies</p>
+    </footer>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- JavaScript -->
+    <script src="./js/app.js"></script>
+</body>
+</html>
