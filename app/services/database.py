@@ -18,7 +18,8 @@ class DatabaseService:
         """Initialize database and create tables if they don't exist"""
         async with aiosqlite.connect(self.db_path) as db:
             # Create namespace metrics table
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS namespace_metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -28,10 +29,12 @@ class DatabaseService:
                     hourly_cost REAL NOT NULL,
                     monthly_cost REAL NOT NULL
                 )
-            """)
+            """
+            )
 
             # Create pod metrics table
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS pod_metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -42,25 +45,34 @@ class DatabaseService:
                     hourly_cost REAL NOT NULL,
                     monthly_cost REAL NOT NULL
                 )
-            """)
+            """
+            )
 
             # Create indexes for better query performance
-            await db.execute("""
+            await db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_namespace_metrics_timestamp
                 ON namespace_metrics(timestamp DESC)
-            """)
-            await db.execute("""
+            """
+            )
+            await db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_namespace_metrics_namespace
                 ON namespace_metrics(namespace)
-            """)
-            await db.execute("""
+            """
+            )
+            await db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_pod_metrics_timestamp
                 ON pod_metrics(timestamp DESC)
-            """)
-            await db.execute("""
+            """
+            )
+            await db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_pod_metrics_namespace
                 ON pod_metrics(namespace)
-            """)
+            """
+            )
 
             await db.commit()
 
@@ -68,41 +80,45 @@ class DatabaseService:
         """Save namespace metrics snapshot"""
         async with aiosqlite.connect(self.db_path) as db:
             for metric in metrics:
-                await db.execute("""
+                await db.execute(
+                    """
                     INSERT INTO namespace_metrics
                     (namespace, cpu_mcores, memory_bytes, hourly_cost, monthly_cost)
                     VALUES (?, ?, ?, ?, ?)
-                """, (
-                    metric['namespace'],
-                    metric['cpu_mcores'],
-                    metric['memory_bytes'],
-                    metric['hourly_cost'],
-                    metric['monthly_cost']
-                ))
+                """,
+                    (
+                        metric["namespace"],
+                        metric["cpu_mcores"],
+                        metric["memory_bytes"],
+                        metric["hourly_cost"],
+                        metric["monthly_cost"],
+                    ),
+                )
             await db.commit()
 
     async def save_pod_metrics(self, metrics: List[Dict[str, Any]]):
         """Save pod metrics snapshot"""
         async with aiosqlite.connect(self.db_path) as db:
             for metric in metrics:
-                await db.execute("""
+                await db.execute(
+                    """
                     INSERT INTO pod_metrics
                     (namespace, pod, cpu_mcores, memory_bytes, hourly_cost, monthly_cost)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    metric['namespace'],
-                    metric['pod'],
-                    metric['cpu_mcores'],
-                    metric['memory_bytes'],
-                    metric['hourly_cost'],
-                    metric['monthly_cost']
-                ))
+                """,
+                    (
+                        metric["namespace"],
+                        metric["pod"],
+                        metric["cpu_mcores"],
+                        metric["memory_bytes"],
+                        metric["hourly_cost"],
+                        metric["monthly_cost"],
+                    ),
+                )
             await db.commit()
 
     async def get_namespace_history(
-        self,
-        namespace: Optional[str] = None,
-        hours: int = 24
+        self, namespace: Optional[str] = None, hours: int = 24
     ) -> List[Dict[str, Any]]:
         """Get historical namespace metrics"""
         since = datetime.now() - timedelta(hours=hours)
@@ -151,16 +167,14 @@ class DatabaseService:
             rows = await cursor.fetchall()
 
             return {
-                'timestamps': [row['hour'] for row in rows],
-                'costs': [row['total_cost'] for row in rows],
-                'cpu': [row['total_cpu'] for row in rows],
-                'memory': [row['total_memory'] for row in rows]
+                "timestamps": [row["hour"] for row in rows],
+                "costs": [row["total_cost"] for row in rows],
+                "cpu": [row["total_cpu"] for row in rows],
+                "memory": [row["total_memory"] for row in rows],
             }
 
     async def get_top_namespaces(
-        self,
-        limit: int = 10,
-        hours: int = 24
+        self, limit: int = 10, hours: int = 24
     ) -> List[Dict[str, Any]]:
         """Get top namespaces by cost"""
         since = datetime.now() - timedelta(hours=hours)
@@ -191,7 +205,9 @@ class DatabaseService:
         cutoff = datetime.now() - timedelta(days=days)
 
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute("DELETE FROM namespace_metrics WHERE timestamp < ?", (cutoff,))
+            await db.execute(
+                "DELETE FROM namespace_metrics WHERE timestamp < ?", (cutoff,)
+            )
             await db.execute("DELETE FROM pod_metrics WHERE timestamp < ?", (cutoff,))
             await db.commit()
 

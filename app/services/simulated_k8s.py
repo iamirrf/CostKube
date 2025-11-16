@@ -19,22 +19,52 @@ class SimulatedKubernetesCluster:
         self.workloads = {
             "production": [
                 {"name": "nginx-web", "replicas": 3, "cpu_base": 150, "mem_base": 512},
-                {"name": "api-gateway", "replicas": 2, "cpu_base": 200, "mem_base": 768},
-                {"name": "redis-cache", "replicas": 2, "cpu_base": 100, "mem_base": 1024},
-                {"name": "postgres-db", "replicas": 1, "cpu_base": 300, "mem_base": 2048},
+                {
+                    "name": "api-gateway",
+                    "replicas": 2,
+                    "cpu_base": 200,
+                    "mem_base": 768,
+                },
+                {
+                    "name": "redis-cache",
+                    "replicas": 2,
+                    "cpu_base": 100,
+                    "mem_base": 1024,
+                },
+                {
+                    "name": "postgres-db",
+                    "replicas": 1,
+                    "cpu_base": 300,
+                    "mem_base": 2048,
+                },
                 {"name": "monitoring", "replicas": 1, "cpu_base": 80, "mem_base": 384},
             ],
             "development": [
                 {"name": "webapp-dev", "replicas": 2, "cpu_base": 100, "mem_base": 256},
                 {"name": "api-dev", "replicas": 2, "cpu_base": 120, "mem_base": 384},
-                {"name": "database-dev", "replicas": 1, "cpu_base": 150, "mem_base": 512},
+                {
+                    "name": "database-dev",
+                    "replicas": 1,
+                    "cpu_base": 150,
+                    "mem_base": 512,
+                },
             ],
             "staging": [
                 {"name": "test-app", "replicas": 1, "cpu_base": 80, "mem_base": 256},
-                {"name": "integration-tests", "replicas": 1, "cpu_base": 120, "mem_base": 384},
+                {
+                    "name": "integration-tests",
+                    "replicas": 1,
+                    "cpu_base": 120,
+                    "mem_base": 384,
+                },
             ],
             "monitoring": [
-                {"name": "prometheus", "replicas": 1, "cpu_base": 250, "mem_base": 1536},
+                {
+                    "name": "prometheus",
+                    "replicas": 1,
+                    "cpu_base": 250,
+                    "mem_base": 1536,
+                },
                 {"name": "grafana", "replicas": 1, "cpu_base": 100, "mem_base": 512},
             ],
         }
@@ -67,22 +97,23 @@ class SimulatedKubernetesCluster:
                 for _ in range(workload["replicas"]):
                     # Apply time-based variance and random jitter
                     cpu = self._add_random_jitter(
-                        workload["cpu_base"] * time_variance,
-                        variance=0.20
+                        workload["cpu_base"] * time_variance, variance=0.20
                     )
                     memory = self._add_random_jitter(
                         workload["mem_base"] * 1024 * 1024,  # Convert MB to bytes
-                        variance=0.10
+                        variance=0.10,
                     )
 
                     total_cpu += cpu
                     total_memory += memory
 
-            namespace_metrics.append({
-                "namespace": namespace,
-                "cpu_mcores": int(total_cpu),
-                "memory_bytes": int(total_memory),
-            })
+            namespace_metrics.append(
+                {
+                    "namespace": namespace,
+                    "cpu_mcores": int(total_cpu),
+                    "memory_bytes": int(total_memory),
+                }
+            )
 
         return namespace_metrics
 
@@ -93,7 +124,8 @@ class SimulatedKubernetesCluster:
 
         # Filter workloads by namespace if specified
         workloads_to_process = (
-            {namespace: self.workloads[namespace]} if namespace and namespace in self.workloads
+            {namespace: self.workloads[namespace]}
+            if namespace and namespace in self.workloads
             else self.workloads
         )
 
@@ -101,25 +133,28 @@ class SimulatedKubernetesCluster:
             for workload in workloads:
                 for replica in range(workload["replicas"]):
                     # Generate unique pod name
-                    pod_suffix = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=10))
+                    pod_suffix = "".join(
+                        random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=10)
+                    )
                     pod_name = f"{workload['name']}-{pod_suffix}"
 
                     # Apply time-based variance and random jitter
                     cpu = self._add_random_jitter(
-                        workload["cpu_base"] * time_variance,
-                        variance=0.20
+                        workload["cpu_base"] * time_variance, variance=0.20
                     )
                     memory = self._add_random_jitter(
                         workload["mem_base"] * 1024 * 1024,  # Convert MB to bytes
-                        variance=0.10
+                        variance=0.10,
                     )
 
-                    pod_metrics.append({
-                        "namespace": ns,
-                        "pod": pod_name,
-                        "cpu_mcores": int(cpu),
-                        "memory_bytes": int(memory),
-                    })
+                    pod_metrics.append(
+                        {
+                            "namespace": ns,
+                            "pod": pod_name,
+                            "cpu_mcores": int(cpu),
+                            "memory_bytes": int(memory),
+                        }
+                    )
 
         return pod_metrics
 

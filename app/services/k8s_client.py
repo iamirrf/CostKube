@@ -12,7 +12,9 @@ class KubernetesClient:
         self.api_client = None
         self.metrics_api = None
         self.simulated_cluster = None
-        self.use_simulated = os.getenv("USE_SIMULATED_CLUSTER", "true").lower() == "true"
+        self.use_simulated = (
+            os.getenv("USE_SIMULATED_CLUSTER", "true").lower() == "true"
+        )
         self._init_k8s_client()
 
     def _init_k8s_client(self):

@@ -4,7 +4,14 @@ import io
 import json
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Query, Response, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Query,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import StreamingResponse
 
 from ..services.cost_model import CostModel
@@ -16,6 +23,7 @@ from ..services.forecasting import forecast_service
 router = APIRouter()
 k8s_client = KubernetesClient()
 cost_model = CostModel()
+
 
 # WebSocket connections manager
 class ConnectionManager:
@@ -35,6 +43,7 @@ class ConnectionManager:
                 await connection.send_json(message)
             except:
                 pass
+
 
 manager = ConnectionManager()
 
@@ -67,7 +76,7 @@ async def get_namespaces(
 @router.get("/api/pods")
 async def get_pods(
     namespace: str = None,
-    save_history: bool = Query(True, description="Save metrics to database")
+    save_history: bool = Query(True, description="Save metrics to database"),
 ) -> Dict[str, Any]:
     """Get real-time pod cost data from Kubernetes cluster"""
     pod_usage = k8s_client.get_pod_usage()
@@ -134,10 +143,11 @@ async def health_check() -> Dict[str, Any]:
 
 # ==================== HISTORICAL DATA ENDPOINTS ====================
 
+
 @router.get("/api/history/namespaces")
 async def get_namespace_history(
     namespace: Optional[str] = Query(None, description="Filter by namespace"),
-    hours: int = Query(24, description="Hours of history to retrieve")
+    hours: int = Query(24, description="Hours of history to retrieve"),
 ) -> Dict[str, Any]:
     """Get historical namespace metrics"""
     try:
@@ -146,10 +156,12 @@ async def get_namespace_history(
             "data": history,
             "namespace": namespace,
             "hours": hours,
-            "count": len(history)
+            "count": len(history),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving history: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving history: {str(e)}"
+        )
 
 
 @router.get("/api/history/trends")
@@ -161,23 +173,28 @@ async def get_cost_trends(
         trends = await db_service.get_cost_trends(hours)
         return trends
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving trends: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving trends: {str(e)}"
+        )
 
 
 @router.get("/api/history/top-namespaces")
 async def get_top_namespaces(
     limit: int = Query(10, description="Number of top namespaces"),
-    hours: int = Query(24, description="Time period in hours")
+    hours: int = Query(24, description="Time period in hours"),
 ) -> Dict[str, Any]:
     """Get top namespaces by cost over a time period"""
     try:
         top = await db_service.get_top_namespaces(limit, hours)
         return {"data": top, "limit": limit, "hours": hours}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving top namespaces: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving top namespaces: {str(e)}"
+        )
 
 
 # ==================== EXPORT ENDPOINTS ====================
+
 
 @router.get("/api/export/namespaces/csv")
 async def export_namespaces_csv():
@@ -190,9 +207,16 @@ async def export_namespaces_csv():
 
     # Create CSV
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=[
-        'namespace', 'cpu_mcores', 'memory_bytes', 'hourly_cost', 'monthly_cost'
-    ])
+    writer = csv.DictWriter(
+        output,
+        fieldnames=[
+            "namespace",
+            "cpu_mcores",
+            "memory_bytes",
+            "hourly_cost",
+            "monthly_cost",
+        ],
+    )
     writer.writeheader()
     writer.writerows(namespace_costs)
 
@@ -203,7 +227,7 @@ async def export_namespaces_csv():
         media_type="text/csv",
         headers={
             "Content-Disposition": f"attachment; filename=costkube_namespaces_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        }
+        },
     )
 
 
@@ -217,19 +241,23 @@ async def export_namespaces_json():
     namespace_costs = cost_model.compute_cost(namespace_usage)
 
     return Response(
-        content=json.dumps({
-            "timestamp": datetime.now().isoformat(),
-            "data": namespace_costs,
-            "export_type": "namespaces"
-        }, indent=2),
+        content=json.dumps(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "data": namespace_costs,
+                "export_type": "namespaces",
+            },
+            indent=2,
+        ),
         media_type="application/json",
         headers={
             "Content-Disposition": f"attachment; filename=costkube_namespaces_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        }
+        },
     )
 
 
 # ==================== RECOMMENDATIONS ENDPOINTS ====================
+
 
 @router.get("/api/recommendations")
 async def get_recommendations() -> Dict[str, Any]:
@@ -259,16 +287,17 @@ async def get_idle_resources() -> Dict[str, Any]:
         if idle_check:
             idle_resources.append(idle_check)
 
-    total_savings = sum(r['potential_savings'] for r in idle_resources)
+    total_savings = sum(r["potential_savings"] for r in idle_resources)
 
     return {
         "idle_resources": idle_resources,
         "count": len(idle_resources),
-        "total_potential_savings": total_savings
+        "total_potential_savings": total_savings,
     }
 
 
 # ==================== FORECASTING ENDPOINTS ====================
+
 
 @router.get("/api/forecast")
 async def get_cost_forecast(
@@ -279,26 +308,22 @@ async def get_cost_forecast(
         # Get historical data
         trends = await db_service.get_cost_trends(hours=168)  # Last 7 days
 
-        if not trends['timestamps']:
+        if not trends["timestamps"]:
             raise HTTPException(
                 status_code=400,
-                detail="Insufficient historical data. Please wait for data collection."
+                detail="Insufficient historical data. Please wait for data collection.",
             )
 
         # Prepare data for forecasting
         historical_data = [
-            {
-                'timestamp': ts,
-                'total_cost': cost,
-                'hourly_cost': cost
-            }
-            for ts, cost in zip(trends['timestamps'], trends['costs'])
+            {"timestamp": ts, "total_cost": cost, "hourly_cost": cost}
+            for ts, cost in zip(trends["timestamps"], trends["costs"])
         ]
 
         forecast = forecast_service.forecast_costs(historical_data, days)
 
-        if 'error' in forecast:
-            raise HTTPException(status_code=400, detail=forecast['error'])
+        if "error" in forecast:
+            raise HTTPException(status_code=400, detail=forecast["error"])
 
         return forecast
 
@@ -316,25 +341,18 @@ async def get_budget_runway(
     try:
         trends = await db_service.get_cost_trends(hours=168)
 
-        if not trends['timestamps']:
-            raise HTTPException(
-                status_code=400,
-                detail="Insufficient historical data"
-            )
+        if not trends["timestamps"]:
+            raise HTTPException(status_code=400, detail="Insufficient historical data")
 
         historical_data = [
-            {
-                'timestamp': ts,
-                'total_cost': cost,
-                'hourly_cost': cost
-            }
-            for ts, cost in zip(trends['timestamps'], trends['costs'])
+            {"timestamp": ts, "total_cost": cost, "hourly_cost": cost}
+            for ts, cost in zip(trends["timestamps"], trends["costs"])
         ]
 
         runway = forecast_service.predict_budget_runway(historical_data, budget)
 
-        if 'error' in runway:
-            raise HTTPException(status_code=400, detail=runway['error'])
+        if "error" in runway:
+            raise HTTPException(status_code=400, detail=runway["error"])
 
         return runway
 
@@ -345,6 +363,7 @@ async def get_budget_runway(
 
 
 # ==================== WEBSOCKET ENDPOINT ====================
+
 
 @router.websocket("/ws/metrics")
 async def websocket_metrics(websocket: WebSocket):
@@ -364,20 +383,20 @@ async def websocket_metrics(websocket: WebSocket):
                     namespace_costs = cost_model.compute_cost(namespace_usage)
 
                     # Send update
-                    await websocket.send_json({
-                        "type": "metrics_update",
-                        "data": namespace_costs,
-                        "timestamp": datetime.now().isoformat()
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "metrics_update",
+                            "data": namespace_costs,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
                 else:
-                    await websocket.send_json({
-                        "type": "error",
-                        "message": "Cluster unavailable"
-                    })
+                    await websocket.send_json(
+                        {"type": "error", "message": "Cluster unavailable"}
+                    )
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
         print(f"WebSocket error: {e}")
         manager.disconnect(websocket)
-

@@ -25,7 +25,7 @@ app = FastAPI(
     title="CostKube",
     description="Kubernetes Cost Analytics Platform for Red Hat",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Mount the API routes
