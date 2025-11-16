@@ -2,7 +2,6 @@
 Database service for storing historical metrics data
 """
 
-import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional

@@ -2,7 +2,7 @@
 Resource right-sizing recommendation service
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
@@ -65,7 +65,12 @@ class RecommendationService:
                     "recommended": recommended_cpu,
                     "utilization": cpu_utilization * 100,
                     "savings": cpu_savings,
-                    "message": f"CPU usage is only {cpu_utilization*100:.1f}%. Consider reducing CPU request from {requested_resources['cpu_mcores']}m to {recommended_cpu:.0f}m cores.",
+                    "message": (
+                        f"CPU usage is only {cpu_utilization*100:.1f}%. "
+                        f"Consider reducing CPU request from "
+                        f"{requested_resources['cpu_mcores']}m to "
+                        f"{recommended_cpu:.0f}m cores."
+                    ),
                 }
             )
             potential_savings += cpu_savings
@@ -83,7 +88,12 @@ class RecommendationService:
                     "recommended": recommended_cpu,
                     "utilization": cpu_utilization * 100,
                     "savings": 0,
-                    "message": f"CPU usage is {cpu_utilization*100:.1f}%. Risk of throttling! Consider increasing CPU request from {requested_resources['cpu_mcores']}m to {recommended_cpu:.0f}m cores.",
+                    "message": (
+                        f"CPU usage is {cpu_utilization*100:.1f}%. "
+                        f"Risk of throttling! Consider increasing CPU request "
+                        f"from {requested_resources['cpu_mcores']}m to "
+                        f"{recommended_cpu:.0f}m cores."
+                    ),
                 }
             )
 
@@ -113,7 +123,12 @@ class RecommendationService:
                     "recommended": recommended_memory,
                     "utilization": memory_utilization * 100,
                     "savings": memory_savings,
-                    "message": f"Memory usage is only {memory_utilization*100:.1f}%. Consider reducing memory request from {requested_resources['memory_bytes']/(1024**3):.2f}Gi to {recommended_memory/(1024**3):.2f}Gi.",
+                    "message": (
+                        f"Memory usage is only {memory_utilization*100:.1f}%. "
+                        f"Consider reducing memory request from "
+                        f"{requested_resources['memory_bytes']/(1024**3):.2f}Gi "
+                        f"to {recommended_memory/(1024**3):.2f}Gi."
+                    ),
                 }
             )
             potential_savings += memory_savings
@@ -131,7 +146,12 @@ class RecommendationService:
                     "recommended": recommended_memory,
                     "utilization": memory_utilization * 100,
                     "savings": 0,
-                    "message": f"Memory usage is {memory_utilization*100:.1f}%. Risk of OOMKill! Consider increasing memory request from {requested_resources['memory_bytes']/(1024**3):.2f}Gi to {recommended_memory/(1024**3):.2f}Gi.",
+                    "message": (
+                        f"Memory usage is {memory_utilization*100:.1f}%. "
+                        f"Risk of OOMKill! Consider increasing memory request "
+                        f"from {requested_resources['memory_bytes']/(1024**3):.2f}Gi "
+                        f"to {recommended_memory/(1024**3):.2f}Gi."
+                    ),
                 }
             )
 
@@ -177,8 +197,13 @@ class RecommendationService:
                 "cpu_mcores": cpu,
                 "memory_bytes": memory,
                 "monthly_cost": monthly_cost,
-                "potential_savings": monthly_cost * 0.95,  # 95% savings if removed
-                "message": f"Namespace appears idle (CPU: {cpu:.0f}m, Memory: {memory/(1024**2):.0f}Mi). Consider removing or consolidating workloads to save ${monthly_cost:.2f}/month.",
+                "potential_savings": monthly_cost * 0.95,  # 95% savings
+                "message": (
+                    f"Namespace appears idle (CPU: {cpu:.0f}m, "
+                    f"Memory: {memory/(1024**2):.0f}Mi). "
+                    f"Consider removing or consolidating workloads to save "
+                    f"${monthly_cost:.2f}/month."
+                ),
             }
 
         return None

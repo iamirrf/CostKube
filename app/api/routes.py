@@ -41,7 +41,7 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
-            except:
+            except Exception:
                 pass
 
 
@@ -58,7 +58,10 @@ async def get_namespaces(
     if namespace_usage is None:
         raise HTTPException(
             status_code=503,
-            detail="Kubernetes cluster not available. Please ensure cluster is running and metrics-server is installed.",
+            detail=(
+                "Kubernetes cluster not available. Please ensure cluster is "
+                "running and metrics-server is installed."
+            ),
         )
 
     namespace_costs = cost_model.compute_cost(namespace_usage)
@@ -84,7 +87,10 @@ async def get_pods(
     if pod_usage is None:
         raise HTTPException(
             status_code=503,
-            detail="Kubernetes cluster not available. Please ensure cluster is running and metrics-server is installed.",
+            detail=(
+                "Kubernetes cluster not available. Please ensure cluster is "
+                "running and metrics-server is installed."
+            ),
         )
 
     if namespace:
@@ -226,7 +232,10 @@ async def export_namespaces_csv():
         iter([output.getvalue()]),
         media_type="text/csv",
         headers={
-            "Content-Disposition": f"attachment; filename=costkube_namespaces_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            "Content-Disposition": (
+                f"attachment; filename=costkube_namespaces_"
+                f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            )
         },
     )
 
@@ -251,7 +260,10 @@ async def export_namespaces_json():
         ),
         media_type="application/json",
         headers={
-            "Content-Disposition": f"attachment; filename=costkube_namespaces_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            "Content-Disposition": (
+                f"attachment; filename=costkube_namespaces_"
+                f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
         },
     )
 

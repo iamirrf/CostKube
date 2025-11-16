@@ -2,8 +2,8 @@
 Cost forecasting and prediction service using simple linear regression
 """
 
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -184,10 +184,14 @@ class ForecastService:
             )
         elif days > 30:
             return (
-                f"⚠️ Budget runway is {days} days. Start planning cost optimization now!"
+                f"⚠️ Budget runway is {days} days. "
+                f"Start planning cost optimization now!"
             )
         else:
-            return f"🚨 Critical: Budget will be exhausted in {days} days! Immediate action required."
+            return (
+                f"🚨 Critical: Budget will be exhausted in {days} days! "
+                f"Immediate action required."
+            )
 
     def seasonal_analysis(
         self, historical_data: List[Dict[str, Any]]
