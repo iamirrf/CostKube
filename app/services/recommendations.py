@@ -1,6 +1,7 @@
 """
 Resource right-sizing recommendation service
 """
+
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 

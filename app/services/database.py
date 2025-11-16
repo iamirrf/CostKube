@@ -1,6 +1,7 @@
 """
 Database service for storing historical metrics data
 """
+
 import aiosqlite
 import json
 from datetime import datetime, timedelta

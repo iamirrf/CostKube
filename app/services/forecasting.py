@@ -1,6 +1,7 @@
 """
 Cost forecasting and prediction service using simple linear regression
 """
+
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 import numpy as np
@@ -181,7 +182,9 @@ class ForecastService:
                 f"Budget runway is {days} days. Consider planning for the next quarter."
             )
         elif days > 30:
-            return f"⚠️ Budget runway is {days} days. Start planning cost optimization now!"
+            return (
+                f"⚠️ Budget runway is {days} days. Start planning cost optimization now!"
+            )
         else:
             return f"🚨 Critical: Budget will be exhausted in {days} days! Immediate action required."
 
