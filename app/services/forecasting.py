@@ -2,8 +2,9 @@
 Cost forecasting and prediction service using simple linear regression
 """
 
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 from sklearn.linear_model import LinearRegression
 

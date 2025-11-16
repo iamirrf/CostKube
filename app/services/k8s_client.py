@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Optional
 import os
+from typing import Any, Dict, List, Optional
 
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException

@@ -1,24 +1,18 @@
-from typing import Any, Dict, Optional
 import csv
 import io
 import json
 from datetime import datetime
+from typing import Any, Dict, Optional
 
-from fastapi import (
-    APIRouter,
-    HTTPException,
-    Query,
-    Response,
-    WebSocket,
-    WebSocketDisconnect,
-)
+from fastapi import (APIRouter, HTTPException, Query, Response, WebSocket,
+                     WebSocketDisconnect)
 from fastapi.responses import StreamingResponse
 
 from ..services.cost_model import CostModel
-from ..services.k8s_client import KubernetesClient
 from ..services.database import db_service
-from ..services.recommendations import recommendation_service
 from ..services.forecasting import forecast_service
+from ..services.k8s_client import KubernetesClient
+from ..services.recommendations import recommendation_service
 
 router = APIRouter()
 k8s_client = KubernetesClient()

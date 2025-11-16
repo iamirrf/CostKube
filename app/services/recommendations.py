@@ -2,8 +2,8 @@
 Resource right-sizing recommendation service
 """
 
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 
 class RecommendationService:
