@@ -278,21 +278,33 @@ body {
 /* ==================== KPI BELT ==================== */
 .kpi-belt {
   display: grid;
-  /* ALWAYS 5 equal columns - NO BREAKPOINTS to mess this up */
   grid-template-columns: repeat(5, 1fr);
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
 }
 
-/* Second kpi-belt (forecast/recommendations) ALWAYS 2 columns */
+/* Second kpi-belt (forecast/recommendations) - 2 equal columns */
 .kpi-belt:nth-of-type(2) {
   grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
 }
 
-/* ONLY change layout on VERY small screens */
+/* Responsive layout for tablets and smaller */
+@media (max-width: 1200px) {
+  .kpi-belt {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+  }
+
+  .kpi-belt:nth-of-type(2) {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .kpi-belt {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
   }
 
   .kpi-belt:nth-of-type(2) {
@@ -303,6 +315,7 @@ body {
 @media (max-width: 480px) {
   .kpi-belt {
     grid-template-columns: 1fr;
+    gap: var(--space-md);
   }
 
   .kpi-belt:nth-of-type(2) {
@@ -602,6 +615,11 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .namespace-badge {
@@ -1126,14 +1144,22 @@ body {
   border-radius: 12px;
   padding: var(--space-xl);
   box-shadow: var(--shadow-lg);
-  /* Remove margin-bottom since they're in a grid */
   margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .forecast-header h4 {
   font-family: var(--font-display);
   font-size: 1.25rem;
   margin-bottom: var(--space-md);
+  font-weight: 600;
+}
+
+.forecast-body {
+  flex: 1;
 }
 
 .forecast-value {
@@ -1141,11 +1167,13 @@ body {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: var(--space-sm);
+  line-height: 1.2;
 }
 
 .forecast-change {
   font-size: 1.125rem;
   margin-bottom: var(--space-md);
+  font-weight: 500;
 }
 
 .forecast-change.increasing {
@@ -1161,12 +1189,17 @@ body {
   gap: var(--space-lg);
   font-size: 0.875rem;
   opacity: 0.9;
+  flex-wrap: wrap;
 }
 
 .rec-summary-card {
-  display: flex;
+  flex-direction: row;
   align-items: center;
   gap: var(--space-lg);
+}
+
+.forecast-card .forecast-body {
+  flex: 1;
 }
 
 .rec-summary-icon {
@@ -1337,16 +1370,75 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .forecast-card, .rec-summary-card {
+  .forecast-card {
+    padding: var(--space-lg);
+  }
+
+  .rec-summary-card {
     flex-direction: column;
     text-align: center;
+    padding: var(--space-lg);
   }
 
   .rec-summary-icon {
     font-size: 2rem;
   }
 
+  .forecast-details {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
   .chart-body {
     height: 250px;
   }
 }
+
+/* ==================== NOTIFICATION TOAST ====================*/
+.notification-toast {
+  position: fixed;
+  top: 100px;
+  right: -400px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: 8px;
+  box-shadow: var(--shadow-xl);
+  border-left: 4px solid var(--pf-blue);
+  font-family: var(--font-text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  z-index: 10000;
+  min-width: 300px;
+  max-width: 500px;
+  transition: right var(--transition-slow);
+}
+
+.notification-toast.show {
+  right: var(--space-xl);
+}
+
+.notification-toast.notification-success {
+  border-left-color: var(--pf-green);
+}
+
+.notification-toast.notification-error {
+  border-left-color: var(--rh-red);
+}
+
+.notification-toast.notification-warning {
+  border-left-color: var(--pf-orange);
+}
+
+/* ==================== BUTTON DISABLED STATE ====================*/
+.sovereign-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sovereign-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+

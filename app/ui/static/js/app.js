@@ -309,40 +309,155 @@ const API = {
 
   async exportCSV() {
     try {
+      // Show loading state
+      const btn = document.getElementById('export-csv-btn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="animation: spin 0.8s linear infinite;">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
+        Exporting...
+      `;
+
       const response = await fetch('/api/export/namespaces/csv');
-      if (!response.ok) throw new Error('Export failed');
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `costkube_export_${new Date().toISOString().split('T')[0]}.csv`;
+
+      // Get filename from Content-Disposition header or generate one
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `costkube_export_${new Date().toISOString().split('T')[0]}.csv`;
+
+      if (contentDisposition) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Success feedback
+      this.showNotification('✅ CSV exported successfully!', 'success');
+
+      // Restore button
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
     } catch (error) {
       console.error('Export error:', error);
-      alert('Failed to export data');
+      this.showNotification('❌ Failed to export CSV. Please try again.', 'error');
+
+      // Restore button
+      const btn = document.getElementById('export-csv-btn');
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export CSV
+      `;
     }
   },
 
   async exportJSON() {
     try {
+      // Show loading state
+      const btn = document.getElementById('export-json-btn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="animation: spin 0.8s linear infinite;">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
+        Exporting...
+      `;
+
       const response = await fetch('/api/export/namespaces/json');
-      if (!response.ok) throw new Error('Export failed');
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `costkube_export_${new Date().toISOString().split('T')[0]}.json`;
+
+      // Get filename from Content-Disposition header or generate one
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `costkube_export_${new Date().toISOString().split('T')[0]}.json`;
+
+      if (contentDisposition) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Success feedback
+      this.showNotification('✅ JSON exported successfully!', 'success');
+
+      // Restore button
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
     } catch (error) {
       console.error('Export error:', error);
-      alert('Failed to export data');
+      this.showNotification('❌ Failed to export JSON. Please try again.', 'error');
+
+      // Restore button
+      const btn = document.getElementById('export-json-btn');
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export JSON
+      `;
     }
+  },
+
+  showNotification(message, type = 'info') {
+    // Remove any existing notification
+    const existing = document.getElementById('notification-toast');
+    if (existing) existing.remove();
+
+    // Create notification
+    const notification = document.createElement('div');
+    notification.id = 'notification-toast';
+    notification.className = `notification-toast notification-${type}`;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    // Trigger animation
+    setTimeout(() => notification.classList.add('show'), 10);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 4000);
   }
 };
 
@@ -1219,7 +1334,22 @@ const App = {
 
     // Set up refresh button
     const refreshBtn = document.getElementById('refresh-btn');
-    refreshBtn?.addEventListener('click', () => this.loadDashboard());
+    refreshBtn?.addEventListener('click', async () => {
+      const originalHTML = refreshBtn.innerHTML;
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = `
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="animation: spin 0.8s linear infinite;">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+        </svg>
+        Refreshing...
+      `;
+
+      await this.loadDashboard();
+
+      refreshBtn.disabled = false;
+      refreshBtn.innerHTML = originalHTML;
+      API.showNotification('✅ Dashboard refreshed!', 'success');
+    });
 
     // Set up export buttons
     const exportCSVBtn = document.getElementById('export-csv-btn');
@@ -1309,8 +1439,31 @@ const App = {
     const container = document.getElementById('forecast-summary');
     if (!container) return;
 
+    // Check if we have valid forecast data
+    if (!forecast || forecast.error || !forecast.forecast_monthly_total) {
+      container.innerHTML = `
+        <div class="forecast-card" style="background: linear-gradient(135deg, var(--pf-gray) 0%, var(--rh-gray-70) 100%);">
+          <div class="forecast-header">
+            <h4>📊 30-Day Cost Forecast</h4>
+          </div>
+          <div class="forecast-body">
+            <div class="forecast-value" style="font-size: 1.5rem;">Collecting Data...</div>
+            <div class="forecast-change" style="opacity: 0.8; font-size: 0.95rem;">
+              Insufficient historical data for accurate forecast
+            </div>
+            <div class="forecast-details" style="font-size: 0.875rem; opacity: 0.7;">
+              <span>📈 Data collection in progress</span>
+              <span>⏱️ Check back in 24 hours</span>
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     const changePercent = ((forecast.forecast_monthly_total - forecast.current_monthly_cost) / forecast.current_monthly_cost * 100).toFixed(1);
     const trendIcon = forecast.trend === 'increasing' ? '📈' : forecast.trend === 'decreasing' ? '📉' : '➡️';
+    const changeColor = forecast.trend === 'increasing' ? '#FFD700' : forecast.trend === 'decreasing' ? '#90EE90' : '#FFF';
 
     container.innerHTML = `
       <div class="forecast-card">
@@ -1319,12 +1472,13 @@ const App = {
         </div>
         <div class="forecast-body">
           <div class="forecast-value">${Utils.formatCurrency(forecast.forecast_monthly_total)}</div>
-          <div class="forecast-change ${forecast.trend}">
+          <div class="forecast-change" style="color: ${changeColor};">
             ${changePercent > 0 ? '+' : ''}${changePercent}% vs current trend
           </div>
           <div class="forecast-details">
-            <span>Trend: ${forecast.trend}</span>
-            <span>Confidence: High</span>
+            <span>Trend: <strong>${forecast.trend}</strong></span>
+            <span>Confidence: <strong>${forecast.confidence || 'High'}</strong></span>
+            ${forecast.method ? `<span>Method: ${forecast.method}</span>` : ''}
           </div>
         </div>
       </div>
@@ -1335,15 +1489,35 @@ const App = {
     const container = document.getElementById('recommendations-summary');
     if (!container) return;
 
+    // Check if we have valid recommendations
+    if (!recommendations || recommendations.total_namespaces_analyzed === 0) {
+      container.innerHTML = `
+        <div class="rec-summary-card" style="background: linear-gradient(135deg, var(--pf-blue) 0%, var(--pf-cyan) 100%);">
+          <div class="rec-summary-icon">💡</div>
+          <div class="rec-summary-content">
+            <div class="rec-summary-value" style="font-size: 1.5rem;">Analyzing...</div>
+            <div class="rec-summary-label">Gathering optimization insights</div>
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-top: var(--space-sm);">
+              Check back soon for cost-saving recommendations
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const savingsAmount = recommendations.total_potential_monthly_savings || 0;
+    const recommendationCount = recommendations.namespaces_with_recommendations || 0;
+
     container.innerHTML = `
       <div class="rec-summary-card">
         <div class="rec-summary-icon">💡</div>
         <div class="rec-summary-content">
-          <div class="rec-summary-value">${Utils.formatCurrency(recommendations.total_potential_monthly_savings)}</div>
+          <div class="rec-summary-value">${Utils.formatCurrency(savingsAmount)}</div>
           <div class="rec-summary-label">Potential Monthly Savings</div>
           <div class="rec-summary-actions">
             <button class="sovereign-btn sovereign-btn-primary" onclick="RecommendationsPanel.show()">
-              View ${recommendations.namespaces_with_recommendations} Recommendations
+              View ${recommendationCount} Recommendation${recommendationCount !== 1 ? 's' : ''}
             </button>
           </div>
         </div>
