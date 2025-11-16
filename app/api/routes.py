@@ -4,8 +4,14 @@ import json
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import (APIRouter, HTTPException, Query, Response, WebSocket,
-                     WebSocketDisconnect)
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Query,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import StreamingResponse
 
 from ..services.cost_model import CostModel

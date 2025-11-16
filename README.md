@@ -457,7 +457,7 @@ CostKube/
 
    # Format code
    black app/ tests/
-   isort app/ tests/
+   isort --profile black app/ tests/
    ```
 ---
 

@@ -1,6 +1,7 @@
 # Kubernetes Cost Explorer
 
 # 💰 CostKube
+
 Kubernetes Cost Explorer built successfully - Red Hat themed UI, real metrics support, demo fallback, cost model configurable via YAML
 
 ## Kubernetes Cost Analytics Platform
@@ -173,6 +174,7 @@ The application will automatically detect if it can connect to a cluster and swi
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/iamirrf/CostKube.git
    cd CostKube/kube-cost-explorer
@@ -208,12 +210,14 @@ The application will automatically detect if it can connect to a cluster and swi
 ### 🚀 Instant Access (Recommended)
 
 **Live Application**: [https://costkube.onrender.com](https://costkube.onrender.com)
+
 - ✅ Full FastAPI backend with real Kubernetes support
 - ✅ Automatic demo mode with sample data
 - ⚠️ First visit may take 30-60 seconds (free tier wakes from sleep)
 - ✅ Persistent URL - bookmark it!
 
 **Static Demo**: [https://iamirrf.github.io/CostKube/](https://iamirrf.github.io/CostKube/)
+
 - ✅ Instant load, no wait time
 - ✅ Beautiful UI showcase
 - ✅ Demo mode with sample data
@@ -457,8 +461,9 @@ kube-cost-explorer/
 
    # Format code
    black app/ tests/
-   isort app/ tests/
+   isort --profile black app/ tests/
    ```
+
 ---
 
 ## 🧪 Testing
