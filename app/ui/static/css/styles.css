@@ -278,9 +278,36 @@ body {
 /* ==================== KPI BELT ==================== */
 .kpi-belt {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* ALWAYS 5 equal columns - NO BREAKPOINTS to mess this up */
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
+}
+
+/* Second kpi-belt (forecast/recommendations) ALWAYS 2 columns */
+.kpi-belt:nth-of-type(2) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* ONLY change layout on VERY small screens */
+@media (max-width: 768px) {
+  .kpi-belt {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .kpi-belt:nth-of-type(2) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-belt {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-belt:nth-of-type(2) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .kpi-card {
@@ -609,9 +636,17 @@ body {
 /* ==================== CHARTS SECTION ==================== */
 .charts-section {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  /* 2 columns on desktop - charts will ALWAYS fill the row */
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
+}
+
+/* Responsive layout for charts */
+@media (max-width: 1000px) {
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 .chart-card {
@@ -650,6 +685,45 @@ body {
 .chart-body {
   position: relative;
   height: 300px;
+}
+
+/* ==================== CHART EMPTY STATE ==================== */
+.chart-empty-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: var(--text-tertiary);
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.chart-empty-state h3 {
+  color: var(--text-primary);
+  margin: 0 0 var(--space-md) 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.chart-empty-state p {
+  margin: var(--space-sm) 0;
+  font-size: 0.9375rem;
+}
+
+.chart-empty-state-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-md);
+  opacity: 0.5;
+}
+
+.chart-empty-state svg {
+  stroke: var(--text-tertiary);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* ==================== DRAWER ==================== */
@@ -810,16 +884,6 @@ body {
 }
 
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 1200px) {
-  .kpi-belt {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-
-  .charts-section {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .sovereign-header-content {
     flex-direction: column;
@@ -833,10 +897,6 @@ body {
 
   .sovereign-main {
     padding: var(--space-lg) var(--space-md);
-  }
-
-  .kpi-belt {
-    grid-template-columns: 1fr;
   }
 
   .kpi-value {
@@ -1065,8 +1125,9 @@ body {
   color: white;
   border-radius: 12px;
   padding: var(--space-xl);
-  margin-bottom: var(--space-lg);
   box-shadow: var(--shadow-lg);
+  /* Remove margin-bottom since they're in a grid */
+  margin: 0;
 }
 
 .forecast-header h4 {

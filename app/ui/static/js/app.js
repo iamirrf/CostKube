@@ -989,13 +989,46 @@ const ChartManager = {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
+    const chartContainer = canvas.parentElement;
 
     if (AppState.charts.trend) {
       AppState.charts.trend.destroy();
     }
 
+    // Check if we have sufficient data for a meaningful chart
+    const hasHistoricalData = AppState.trendData && AppState.trendData.timestamps && AppState.trendData.timestamps.length >= 2;
+    const hasForecastData = AppState.forecast && AppState.forecast.forecast_dates && AppState.forecast.forecast_dates.length > 0;
+
+    // ---- CONDITIONAL RENDERING: Check data sufficiency ----
+    if (!hasHistoricalData && !hasForecastData) {
+      // INSUFFICIENT DATA: Render empty state instead of broken chart
+      chartContainer.innerHTML = `
+        <div class="chart-empty-state">
+          <svg class="chart-empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 17l-5-5-4 4-5-5"></path>
+          </svg>
+          <h3>Cost Trend Analysis</h3>
+          <p>Collecting data for trend analysis...</p>
+          <p>Check back in 24 hours to see your cost trends.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // SUFFICIENT DATA: Ensure canvas exists (might have been replaced by empty state)
+    if (chartContainer.querySelector('.chart-empty-state')) {
+      chartContainer.innerHTML = '<canvas id="trend-chart"></canvas>';
+      const newCanvas = document.getElementById('trend-chart');
+      const newCtx = newCanvas.getContext('2d');
+
+      // Re-assign to the new canvas
+      canvas = newCanvas;
+      ctx = newCtx;
+    }
+
     // Use historical data if available, otherwise generate demo trend
-    if (AppState.trendData && AppState.trendData.timestamps.length > 0) {
+    if (hasHistoricalData) {
       const timestamps = AppState.trendData.timestamps.map(ts => {
         const date = new Date(ts);
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -1006,7 +1039,7 @@ const ChartManager = {
       let forecastTimestamps = [];
       let forecastCosts = [];
 
-      if (AppState.forecast && AppState.forecast.forecast_dates) {
+      if (hasForecastData) {
         forecastTimestamps = AppState.forecast.forecast_dates.slice(0, 7).map(ts => {
           const date = new Date(ts);
           return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -1080,7 +1113,23 @@ const ChartManager = {
         }
       });
     } else {
-      // Fallback to demo data
+      // Fallback to demo data (only if we have namespace data)
+      if (AppState.namespaces.length === 0) {
+        // Show empty state if no namespace data either
+        chartContainer.innerHTML = `
+          <div class="chart-empty-state">
+            <svg class="chart-empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"></path>
+              <path d="M18 17l-5-5-4 4-5-5"></path>
+            </svg>
+            <h3>Cost Trend Analysis</h3>
+            <p>No data available yet.</p>
+            <p>Start using your cluster to see cost trends.</p>
+          </div>
+        `;
+        return;
+      }
+
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
       const totalCost = AppState.namespaces.reduce((sum, ns) => sum + ns.monthly_cost, 0);
       const trendData = months.map((_, i) => totalCost * (0.7 + (i * 0.05)));
