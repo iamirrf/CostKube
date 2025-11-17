@@ -161,6 +161,60 @@
             </div>
         </section>
 
+        <!-- Resource Efficiency Score -->
+        <section class="efficiency-section">
+            <div id="efficiency-card" class="efficiency-card">
+                <div class="efficiency-header">
+                    <h3 class="efficiency-title">⚡ Resource Efficiency Score</h3>
+                    <p class="efficiency-subtitle">Overall cluster utilization and optimization level</p>
+                </div>
+                <div class="efficiency-body">
+                    <div class="efficiency-gauge-container">
+                        <svg class="efficiency-gauge" viewBox="0 0 200 120">
+                            <!-- Background arc -->
+                            <path id="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--bg-tertiary)" stroke-width="20" stroke-linecap="round"/>
+                            <!-- Colored segments -->
+                            <path class="gauge-segment gauge-red" d="M 20 100 A 80 80 0 0 1 60 35" fill="none" stroke="#EE0000" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                            <path class="gauge-segment gauge-orange" d="M 60 35 A 80 80 0 0 1 100 15" fill="none" stroke="#EC7A08" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                            <path class="gauge-segment gauge-yellow" d="M 100 15 A 80 80 0 0 1 140 35" fill="none" stroke="#F0AB00" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                            <path class="gauge-segment gauge-green" d="M 140 35 A 80 80 0 0 1 180 100" fill="none" stroke="#3E8635" stroke-width="20" stroke-linecap="round" opacity="0.3"/>
+                            <!-- Progress arc -->
+                            <path id="gauge-progress" d="M 20 100 A 80 80 0 0 1 20 100" fill="none" stroke="#3E8635" stroke-width="22" stroke-linecap="round"/>
+                            <!-- Center value -->
+                            <text x="100" y="80" text-anchor="middle" class="gauge-value" id="efficiency-value">--</text>
+                            <text x="100" y="100" text-anchor="middle" class="gauge-label">Efficiency</text>
+                        </svg>
+                    </div>
+                    <div class="efficiency-metrics">
+                        <div class="efficiency-metric">
+                            <div class="metric-icon">💻</div>
+                            <div class="metric-content">
+                                <div class="metric-label">CPU Efficiency</div>
+                                <div class="metric-value" id="cpu-efficiency">--%</div>
+                            </div>
+                        </div>
+                        <div class="efficiency-metric">
+                            <div class="metric-icon">🧠</div>
+                            <div class="metric-content">
+                                <div class="metric-label">Memory Efficiency</div>
+                                <div class="metric-value" id="memory-efficiency">--%</div>
+                            </div>
+                        </div>
+                        <div class="efficiency-metric">
+                            <div class="metric-icon">💰</div>
+                            <div class="metric-content">
+                                <div class="metric-label">Cost Optimization</div>
+                                <div class="metric-value" id="cost-optimization">--%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="efficiency-insights" id="efficiency-insights">
+                        <div class="insight-item">📊 Analyzing cluster resources...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Forecast & Recommendations Summary -->
         <section class="kpi-belt">
             <div id="forecast-summary" class="animate-in-left"></div>

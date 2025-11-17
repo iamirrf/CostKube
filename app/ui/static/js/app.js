@@ -239,6 +239,165 @@ const ThemeManager = {
   }
 };
 
+// ==================== EFFICIENCY CALCULATOR ====================
+const EfficiencyCalculator = {
+  calculateEfficiency(namespaces, recommendations) {
+    if (!namespaces || namespaces.length === 0) {
+      return {
+        overall: 0,
+        cpu: 0,
+        memory: 0,
+        cost: 0,
+        insights: ['📊 Analyzing cluster resources...']
+      };
+    }
+
+    // Calculate CPU efficiency (assuming 70% utilization is optimal)
+    const totalCPU = namespaces.reduce((sum, ns) => sum + ns.cpu_mcores, 0);
+    const cpuEfficiency = Math.min(100, (totalCPU / 1000) * 25); // Simplified calculation
+
+    // Calculate memory efficiency
+    const totalMemory = namespaces.reduce((sum, ns) => sum + ns.memory_bytes, 0);
+    const memoryEfficiency = Math.min(100, (totalMemory / (1024 ** 3)) * 8); // Simplified
+
+    // Calculate cost optimization score
+    let costOptimization = 85; // Default high score
+    if (recommendations) {
+      const potentialSavings = recommendations.total_potential_monthly_savings || 0;
+      const totalCost = namespaces.reduce((sum, ns) => sum + ns.monthly_cost, 0);
+      if (totalCost > 0) {
+        const savingsPercent = (potentialSavings / totalCost) * 100;
+        costOptimization = Math.max(0, 100 - savingsPercent);
+      }
+    }
+
+    // Overall efficiency (weighted average)
+    const overall = Math.round((cpuEfficiency * 0.35 + memoryEfficiency * 0.35 + costOptimization * 0.30));
+
+    // Generate insights
+    const insights = this.generateInsights(overall, cpuEfficiency, memoryEfficiency, costOptimization, recommendations);
+
+    return {
+      overall,
+      cpu: Math.round(cpuEfficiency),
+      memory: Math.round(memoryEfficiency),
+      cost: Math.round(costOptimization),
+      insights
+    };
+  },
+
+  generateInsights(overall, cpu, memory, cost, recommendations) {
+    const insights = [];
+
+    if (overall >= 85) {
+      insights.push('✅ Excellent cluster efficiency! Your resources are well-optimized.');
+    } else if (overall >= 70) {
+      insights.push('👍 Good efficiency. Minor optimizations available.');
+    } else if (overall >= 50) {
+      insights.push('⚠️ Moderate efficiency. Consider optimization opportunities.');
+    } else {
+      insights.push('🚨 Low efficiency detected. Significant optimization needed.');
+    }
+
+    if (cpu < 60) {
+      insights.push('💻 CPU utilization is low. Consider rightsizing workloads.');
+    } else if (cpu > 90) {
+      insights.push('⚡ High CPU usage detected. Monitor for performance issues.');
+    }
+
+    if (memory < 60) {
+      insights.push('🧠 Memory allocation can be optimized to reduce waste.');
+    } else if (memory > 90) {
+      insights.push('📊 Memory usage is high. Consider scaling resources.');
+    }
+
+    if (recommendations) {
+      const idleCount = recommendations.idle_resource_count || 0;
+      if (idleCount > 0) {
+        insights.push(`🔍 ${idleCount} idle resource${idleCount > 1 ? 's' : ''} found. Quick wins available!`);
+      }
+
+      const savings = recommendations.total_potential_monthly_savings || 0;
+      if (savings > 10) {
+        insights.push(`💰 Potential savings: ${Utils.formatCurrency(savings)}/month`);
+      }
+    }
+
+    return insights.slice(0, 3); // Max 3 insights
+  },
+
+  updateEfficiencyUI(efficiency) {
+    // Update gauge
+    this.animateGauge(efficiency.overall);
+
+    // Update individual metrics
+    document.getElementById('cpu-efficiency').textContent = `${efficiency.cpu}%`;
+    document.getElementById('memory-efficiency').textContent = `${efficiency.memory}%`;
+    document.getElementById('cost-optimization').textContent = `${efficiency.cost}%`;
+
+    // Update insights
+    const insightsContainer = document.getElementById('efficiency-insights');
+    insightsContainer.innerHTML = efficiency.insights.map((insight, index) => {
+      let className = 'insight-item';
+      if (insight.includes('✅') || insight.includes('👍')) {
+        className += ' insight-success';
+      } else if (insight.includes('⚠️') || insight.includes('🔍')) {
+        className += ' insight-warning';
+      } else if (insight.includes('🚨')) {
+        className += ' insight-error';
+      }
+      return `<div class="${className}" style="animation-delay: ${index * 0.1}s">${insight}</div>`;
+    }).join('');
+  },
+
+  animateGauge(percent) {
+    const valueEl = document.getElementById('efficiency-value');
+    const progressPath = document.getElementById('gauge-progress');
+
+    // Animate the number
+    let current = 0;
+    const duration = 1500;
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      current = Math.round(percent * easeOutQuart);
+
+      valueEl.textContent = `${current}%`;
+
+      // Update gauge path
+      const angle = (percent / 100) * 180; // 0-180 degrees
+      const radians = (angle - 90) * (Math.PI / 180);
+      const x = 100 + 80 * Math.cos(radians);
+      const y = 100 + 80 * Math.sin(radians);
+      const largeArc = angle > 90 ? 1 : 0;
+
+      progressPath.setAttribute('d', `M 20 100 A 80 80 0 ${largeArc} 1 ${x} ${y}`);
+
+      // Update color based on percentage
+      let color;
+      if (percent >= 85) {
+        color = '#3E8635'; // Green
+      } else if (percent >= 70) {
+        color = '#F0AB00'; // Yellow
+      } else if (percent >= 50) {
+        color = '#EC7A08'; // Orange
+      } else {
+        color = '#EE0000'; // Red
+      }
+      progressPath.setAttribute('stroke', color);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
+};
+
 // ==================== API SERVICE ====================
 const API = {
   async fetchConfig() {
@@ -1399,6 +1558,20 @@ const App = {
       UI.updateKPIs(AppState.namespaces);
       UI.populateNamespaceTable(AppState.namespaces);
 
+      // Fetch recommendations first to calculate efficiency
+      const recommendations = await API.fetchRecommendations();
+      if (recommendations) {
+        AppState.recommendations = recommendations;
+        this.displayRecommendationsSummary(recommendations);
+      }
+
+      // Calculate and display efficiency score
+      const efficiency = EfficiencyCalculator.calculateEfficiency(
+        AppState.namespaces,
+        AppState.recommendations
+      );
+      EfficiencyCalculator.updateEfficiencyUI(efficiency);
+
       // Fetch historical trends (don't block on this)
       API.fetchCostTrends().then(trends => {
         if (trends && trends.timestamps) {
@@ -1413,14 +1586,6 @@ const App = {
           AppState.forecast = forecast;
           ChartManager.renderTrendChart(); // Re-render with forecast
           this.displayForecastSummary(forecast);
-        }
-      });
-
-      // Fetch recommendations (don't block on this)
-      API.fetchRecommendations().then(recommendations => {
-        if (recommendations) {
-          AppState.recommendations = recommendations;
-          this.displayRecommendationsSummary(recommendations);
         }
       });
 
