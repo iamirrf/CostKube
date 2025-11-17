@@ -211,7 +211,7 @@ async def export_namespaces_csv():
 
     namespace_costs = cost_model.compute_cost(namespace_usage)
 
-    # Create CSV
+    # Create CSV with all fields
     output = io.StringIO()
     writer = csv.DictWriter(
         output,
@@ -219,9 +219,12 @@ async def export_namespaces_csv():
             "namespace",
             "cpu_mcores",
             "memory_bytes",
+            "cpu_core_hours",
+            "memory_gb_hours",
             "hourly_cost",
             "monthly_cost",
         ],
+        extrasaction='ignore'  # Ignore any extra fields not in fieldnames
     )
     writer.writeheader()
     writer.writerows(namespace_costs)
