@@ -323,11 +323,17 @@ async def get_cost_forecast(
         # Get historical data
         trends = await db_service.get_cost_trends(hours=168)  # Last 7 days
 
-        if not trends["timestamps"]:
-            raise HTTPException(
-                status_code=400,
-                detail="Insufficient historical data. Please wait for data collection.",
-            )
+        if not trends["timestamps"] or len(trends["timestamps"]) < 2:
+            # Return a friendly response instead of error when insufficient data
+            return {
+                "error": "insufficient_data",
+                "message": "Collecting historical data for forecasting. Check back in 24 hours.",
+                "forecast_monthly_total": 0,
+                "current_monthly_cost": 0,
+                "trend": "unknown",
+                "forecast_dates": [],
+                "forecast_costs": []
+            }
 
         # Prepare data for forecasting
         historical_data = [
@@ -338,14 +344,32 @@ async def get_cost_forecast(
         forecast = forecast_service.forecast_costs(historical_data, days)
 
         if "error" in forecast:
-            raise HTTPException(status_code=400, detail=forecast["error"])
+            # Return friendly error response instead of HTTP 400
+            return {
+                "error": forecast.get("error", "unknown"),
+                "message": forecast.get("error", "Unable to generate forecast"),
+                "forecast_monthly_total": 0,
+                "current_monthly_cost": 0,
+                "trend": "unknown",
+                "forecast_dates": [],
+                "forecast_costs": []
+            }
 
         return forecast
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Forecast error: {str(e)}")
+        # Return friendly error instead of 500
+        return {
+            "error": "forecast_error",
+            "message": f"Forecast temporarily unavailable: {str(e)}",
+            "forecast_monthly_total": 0,
+            "current_monthly_cost": 0,
+            "trend": "unknown",
+            "forecast_dates": [],
+            "forecast_costs": []
+        }
 
 
 @router.get("/api/forecast/budget-runway")

@@ -1662,44 +1662,9 @@ const App = {
   },
 
   displayRecommendationsSummary(recommendations) {
-    const container = document.getElementById('recommendations-summary');
-    if (!container) return;
-
-    // Check if we have valid recommendations
-    if (!recommendations || recommendations.total_namespaces_analyzed === 0) {
-      container.innerHTML = `
-        <div class="rec-summary-card" style="background: linear-gradient(135deg, var(--pf-blue) 0%, var(--pf-cyan) 100%);">
-          <div class="rec-summary-icon">💡</div>
-          <div class="rec-summary-content">
-            <div class="rec-summary-value" style="font-size: 1.5rem;">Analyzing...</div>
-            <div class="rec-summary-label">Gathering optimization insights</div>
-            <div style="font-size: 0.875rem; opacity: 0.9; margin-top: var(--space-sm);">
-              Check back soon for cost-saving recommendations
-            </div>
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    const savingsAmount = recommendations.total_potential_monthly_savings || 0;
-    const recommendationCount = recommendations.namespaces_with_recommendations || 0;
-
-    // Only show button to open recommendations panel - savings will be shown inside
-    container.innerHTML = `
-      <div class="rec-summary-card" style="background: linear-gradient(135deg, var(--pf-blue) 0%, var(--pf-cyan) 100%);">
-        <div class="rec-summary-icon">💡</div>
-        <div class="rec-summary-content">
-          <div class="rec-summary-value" style="font-size: 1.5rem;">${recommendationCount}</div>
-          <div class="rec-summary-label">Optimization Opportunities Available</div>
-          <div class="rec-summary-actions">
-            <button class="sovereign-btn sovereign-btn-primary" onclick="RecommendationsPanel.show()" style="background: white; color: var(--pf-blue);">
-              View Recommendations & Savings
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
+    // Recommendations summary removed - now only shown inside the panel
+    // Users can access via the "Recommendations" button in the section header
+    return;
   },
 
   showError(message) {
