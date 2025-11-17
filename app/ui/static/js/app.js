@@ -879,13 +879,20 @@ const RecommendationsPanel = {
     }
 
     const html = `
+      <div class="recommendations-header-banner">
+        <div class="savings-highlight">
+          <div class="savings-icon">💰</div>
+          <div class="savings-content">
+            <div class="savings-amount">${Utils.formatCurrency(recommendations.total_potential_monthly_savings)}</div>
+            <div class="savings-label">Potential Monthly Savings</div>
+            <div class="savings-description">Implement these recommendations to reduce your cloud costs</div>
+          </div>
+        </div>
+      </div>
+
       <div class="recommendations-summary">
         <h3>💡 Cost Optimization Recommendations</h3>
         <div class="rec-stats">
-          <div class="rec-stat">
-            <div class="rec-stat-value">${Utils.formatCurrency(recommendations.total_potential_monthly_savings)}</div>
-            <div class="rec-stat-label">Potential Monthly Savings</div>
-          </div>
           <div class="rec-stat">
             <div class="rec-stat-value">${recommendations.namespaces_with_recommendations}</div>
             <div class="rec-stat-label">Namespaces with Issues</div>
@@ -897,6 +904,10 @@ const RecommendationsPanel = {
           <div class="rec-stat">
             <div class="rec-stat-value">${recommendations.idle_resource_count}</div>
             <div class="rec-stat-label">Idle Resources</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rec-stat-value">${recommendations.total_namespaces_analyzed}</div>
+            <div class="rec-stat-label">Total Analyzed</div>
           </div>
         </div>
       </div>
@@ -1674,15 +1685,16 @@ const App = {
     const savingsAmount = recommendations.total_potential_monthly_savings || 0;
     const recommendationCount = recommendations.namespaces_with_recommendations || 0;
 
+    // Only show button to open recommendations panel - savings will be shown inside
     container.innerHTML = `
-      <div class="rec-summary-card">
+      <div class="rec-summary-card" style="background: linear-gradient(135deg, var(--pf-blue) 0%, var(--pf-cyan) 100%);">
         <div class="rec-summary-icon">💡</div>
         <div class="rec-summary-content">
-          <div class="rec-summary-value">${Utils.formatCurrency(savingsAmount)}</div>
-          <div class="rec-summary-label">Potential Monthly Savings</div>
+          <div class="rec-summary-value" style="font-size: 1.5rem;">${recommendationCount}</div>
+          <div class="rec-summary-label">Optimization Opportunities Available</div>
           <div class="rec-summary-actions">
-            <button class="sovereign-btn sovereign-btn-primary" onclick="RecommendationsPanel.show()">
-              View ${recommendationCount} Recommendation${recommendationCount !== 1 ? 's' : ''}
+            <button class="sovereign-btn sovereign-btn-primary" onclick="RecommendationsPanel.show()" style="background: white; color: var(--pf-blue);">
+              View Recommendations & Savings
             </button>
           </div>
         </div>

@@ -1335,13 +1335,84 @@ body::before {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: var(--space-xl);
+  padding: 0;
   box-shadow: var(--shadow-md);
   animation: slideDown 0.4s ease-out;
+  overflow: hidden;
+}
+
+/* Prominent Savings Banner */
+.recommendations-header-banner {
+  background: linear-gradient(135deg, var(--rh-red) 0%, var(--rh-red-dark) 100%);
+  padding: var(--space-2xl);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendations-header-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: pulse-bg 4s ease-in-out infinite;
+}
+
+.savings-highlight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  position: relative;
+  z-index: 1;
+}
+
+.savings-icon {
+  font-size: 4rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.savings-content {
+  flex: 1;
+}
+
+.savings-amount {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.savings-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+  opacity: 0.95;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.savings-description {
+  font-size: 1rem;
+  opacity: 0.85;
+  line-height: 1.5;
 }
 
 .recommendations-summary {
   margin-bottom: var(--space-xl);
+  padding: var(--space-xl);
   padding-bottom: var(--space-xl);
   border-bottom: 2px solid var(--border-color);
 }
@@ -1388,6 +1459,7 @@ body::before {
 
 .rec-section {
   margin-bottom: var(--space-xl);
+  padding: 0 var(--space-xl);
 }
 
 .rec-section h4 {
@@ -1701,6 +1773,29 @@ body::before {
 
   .chart-body {
     height: 250px;
+  }
+
+  /* Responsive savings banner */
+  .savings-highlight {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-md);
+  }
+
+  .savings-amount {
+    font-size: 2.5rem;
+  }
+
+  .savings-label {
+    font-size: 1rem;
+  }
+
+  .savings-description {
+    font-size: 0.875rem;
+  }
+
+  .recommendations-header-banner {
+    padding: var(--space-xl);
   }
 }
 
